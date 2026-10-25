@@ -2,6 +2,53 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dictionary, translate, getLanguage, setLanguage, t } from '../src/i18n.js';
 
+test('synthetic export markers and analyzer navigation remain bilingual and reversible', () => {
+  for (const [english, ukrainian] of [
+    ['Analyzer', 'Аналізатор'],
+    ['Synthetic data analyzer', 'Аналізатор синтетичних даних'],
+    ['Every export includes 10 near-zero marker records before the profile. Measurement timestamps stay unchanged.', 'Кожен експорт містить 10 білянульових записів мітки перед профілем. Часові мітки вимірювань залишаються незмінними.'],
+    ['Synthetic marker detected; 10 marker records were excluded from the profile.', 'Виявлено синтетичну мітку; 10 службових записів виключено з профілю.'],
+    ['Synthetic marking needs at least two valid measurements with strictly increasing timestamps.', 'Для синтетичної мітки потрібні щонайменше два коректні вимірювання з часовими мітками, що строго зростають.'],
+    ['The timeline has no room for a synthetic marker before its first measurement.', 'На часовій шкалі немає місця для синтетичної мітки перед першим вимірюванням.'],
+    ['Synthetic marker analysis needs an array of measurements.', 'Для аналізу синтетичної мітки потрібен масив вимірювань.'],
+    ['Synthetic marker export must be true or false.', 'Параметр експорту синтетичної мітки має бути true або false.'],
+    ['Export units cannot represent these timestamps as finite, strictly increasing values.', 'Одиниці експорту не дозволяють подати ці часові мітки як скінченні значення, що строго зростають.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+});
+
+test('analyzer input, results, limitations and file errors translate in both directions', () => {
+  for (const english of [
+    'FILE INSPECTION', 'ANALYSIS RESULT',
+    'Check a saved CSV or Thrust Lab project for its synthetic marker.',
+    'Files stay on this device', 'Inspect a file',
+    'The analyzer reads the saved file independently of your working profile.',
+    'Choose CSV or project', 'No file selected', 'CSV interpretation',
+    'Adjust columns and units if the file uses a different format.',
+    'Ready to inspect', 'Choose an exported file to check the first ten records.',
+    'Marker scheme', 'Marker records', 'Profile measurements', 'Profile timeline',
+    'Marker records are excluded from profile charts and measurements.',
+    'How to interpret the result',
+    'A matching pattern identifies the Thrust Lab synthetic marker. A missing marker does not prove that measurements are real.',
+    'The marker is an identification pattern, not a cryptographic authenticity check.',
+    'Unable to inspect this file', 'Check the file format, columns, and units, then try again.',
+    'Synthetic marker detected', 'No synthetic marker found',
+    'The first ten records match the Thrust Lab synthetic pattern.',
+    'This file does not contain the recognized Thrust Lab marker.',
+    'Not detected', 'Untitled file', 'File content must be text.',
+    'Analyzer files must be smaller than 20 MB.', 'Reading file…',
+    'Analysis runs locally in this browser.', 'Thrust Lab project',
+  ]) {
+    const ukrainian = translate(english, 'uk');
+    assert.notEqual(ukrainian, english);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+  assert.equal(translate('Synthetic marker detected', 'uk'), 'Синтетичну мітку виявлено');
+  assert.equal(translate('No synthetic marker found', 'uk'), 'Синтетичної мітки не знайдено');
+});
+
 test('translates static interface and accessibility labels with whitespace intact', () => {
   assert.equal(translate('  Profile library\n', 'uk'), '  Бібліотека профілів\n');
   assert.equal(translate('Noise from recording', 'ua'), 'Шум із запису');

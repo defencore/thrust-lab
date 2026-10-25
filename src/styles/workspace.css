@@ -1,4 +1,7 @@
 /* Editing and creation are separate workspaces with independent profile data. */
+body[data-screen="analyzer"] .project-bar,
+body[data-screen="analyzer"] .studio,
+body[data-screen="analyzer"] .status-bar { display: none; }
 .display-units-bar { display: flex; align-items: center; gap: 18px; min-height: 40px; padding: 7px 13px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfe; }
 .display-units-title { display: flex; align-items: center; gap: 7px; color: #788ba2; font-size: 12px; white-space: nowrap; margin-right: auto; }
 .display-units-title .icon { width: 13px; height: 13px; }
@@ -62,11 +65,12 @@ body[data-workspace="create"] .bottom-panel { display: none; }
   body[data-workspace="edit"] .library-panel { display: none; }
 }
 @media (max-width: 760px) {
-  .workspace-bar { padding: 0 11px; gap: 12px; }
-  .workspace-modes { gap: 14px; }
-  .workspace-modes button { gap: 5px; font-size: 12px; }
+  .workspace-bar { padding: 0 11px; gap: 0; flex-wrap: wrap; }
+  .workspace-modes { flex: 1 1 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .workspace-modes button { gap: 5px; font-size: 12px; padding: 10px 3px; justify-content: center; line-height: 1.4; }
+  .workspace-modes .icon { flex-shrink: 0; }
   #workspace-caption { display: none; }
-  #settings-open { padding-left: 4px; padding-right: 4px; font-size: 12px; gap: 5px; }
+  #settings-open { padding-left: 4px; padding-right: 4px; margin-top: 3px; margin-bottom: 3px; font-size: 12px; gap: 5px; }
   #settings-open .icon { width: 13px; height: 13px; }
   .creation-controls-heading { padding-left: 14px; padding-right: 14px; }
   .creation-controls-heading h2 { font-size: 12px; }

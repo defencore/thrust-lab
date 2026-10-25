@@ -4,6 +4,7 @@ export function bindNavigation(ctx) {
   const { $, $$, ui, store, units } = ctx;
   for (const id of ['new-profile', 'mode-create']) $(`#${id}`).onclick = () => ctx.setMode('create');
   for (const id of ['mode-edit', 'return-editor']) $(`#${id}`).onclick = () => ctx.setMode('edit');
+  $('#mode-analyzer').onclick = () => ctx.analyzer.open();
   $$('button[data-tool]').forEach(button => button.onclick = () => ctx.setTool(button.dataset.tool));
   $$('[data-bottom]').forEach(button => button.onclick = () => ctx.setBottom(button.dataset.bottom));
   $$('[data-inspector]').forEach(button => button.onclick = () => {
@@ -51,6 +52,7 @@ export function bindNavigation(ctx) {
   document.addEventListener('keydown', event => {
     const command = event.ctrlKey || event.metaKey, key = event.key.toLowerCase();
     if ($$('dialog').some(dialog => dialog.open)) return;
+    if (ui.screen === 'analyzer') return;
     const editing = /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable;
     if (command && key === 's') { event.preventDefault(); ctx.files.openExport(); return; }
     if (key === 'escape') { event.preventDefault(); if (editing) event.target.blur(); ctx.clearSelection(); return; }

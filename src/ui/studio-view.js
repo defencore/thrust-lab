@@ -54,8 +54,10 @@ export function createStudioView(ctx) {
     $('#project-name').readOnly = ui.mode === 'create';
     if (document.activeElement !== $('#project-name')) $('#project-name').value = profile.name;
     const status = store.status();
-    for (const id of ['undo', 'mobile-undo']) $(`#${id}`).disabled = ui.mode !== 'edit' || !status.canUndo;
-    for (const id of ['redo', 'mobile-redo']) $(`#${id}`).disabled = ui.mode !== 'edit' || !status.canRedo;
+    const analyzing = ui.screen === 'analyzer';
+    for (const id of ['undo', 'mobile-undo']) $(`#${id}`).disabled = analyzing || ui.mode !== 'edit' || !status.canUndo;
+    for (const id of ['redo', 'mobile-redo']) $(`#${id}`).disabled = analyzing || ui.mode !== 'edit' || !status.canRedo;
+    $('#import').disabled = analyzing; $('#export').disabled = analyzing;
     $('#sample-count').textContent = p.points.length.toLocaleString('en-US');
     $('#data-status').textContent = `${m.samples.toLocaleString('en-US')} samples · ${units.format(m.duration, 'time', 3)} ${units.symbol('time')} timeline · ${units.symbol('thrust')} / ${units.symbol('time')}`;
     $('#timeline-start').textContent = `${units.format(m.start, 'time', 3)} ${units.symbol('time')}`;

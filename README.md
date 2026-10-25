@@ -195,6 +195,14 @@ The included `.github/workflows/deploy.yml` runs tests, builds the application, 
 
 `public/CNAME` is copied to the production output. No server-side routing or runtime configuration is needed. The repository includes deployment preparation; DNS configuration and a completed GitHub Pages deployment are separate external steps.
 
+## Synthetic export marker and analyzer
+
+User downloads of CSV and project JSON include a ten-record, near-zero numerical marker before the first profile measurement. Every actual measurement and its timestamp is retained. Marker times precede the original timeline and may be negative; no real sample is overwritten. Marker thrust stays below 0.0000001 N, and its precision is retained even when fewer thrust decimals are selected for the profile.
+
+The importer recognizes the complete `thrust-lab-v1` pattern and removes its ten service records before loading the profile. They never enter the editor chart, sample table, overview, burn metrics, original recording, or internal autosave/history. Importing and saving again produces one marker prefix, rather than accumulating markers.
+
+Use the top **Analyzer** tab to inspect a CSV or project JSON without changing the editor or generator. CSV column mapping, headers, and units can be corrected directly in the analyzer. Results distinguish a recognized marker, no recognized marker, and an invalid file. The check identifies the Thrust Lab synthetic marker; it is not a cryptographic origin or integrity check, and absence of the marker does not establish that data was measured. All inspection stays in the browser.
+
 ## Data formats
 
 ```csv

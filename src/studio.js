@@ -22,6 +22,7 @@ import { createMeasurementController } from './controllers/measurement-controlle
 import { createShiftController } from './controllers/shift-controller.js';
 import { clearChartSelection } from './controllers/selection-controller.js';
 import { bindNavigation } from './controllers/navigation-controller.js';
+import { createAnalyzerController } from './controllers/analyzer-controller.js';
 
 /** Assemble independent UI controllers around one transactional project store. */
 export function createStudio() {
@@ -59,8 +60,8 @@ export function createStudio() {
       try { ctx.beforeEdit(label); store.edit(label, mutate, options); }
       catch (error) { ctx.error(error); }
     },
-    undo() { if (ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.undo(); ctx.render(); },
-    redo() { if (ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.redo(); ctx.render(); },
+    undo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.undo(); ctx.render(); },
+    redo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.redo(); ctx.render(); },
     clearSelection() { clearChartSelection(ctx); },
     fitView() {
       ctx.chart?.cancelDrag();
@@ -88,6 +89,7 @@ export function createStudio() {
       ctx.render();
     },
     setMode(mode) {
+      ctx.analyzer?.close();
       if (mode !== ui.mode) {
         ctx.chart?.cancelDrag();
         ctx.beforeEdit('mode');
@@ -121,6 +123,7 @@ export function createStudio() {
   ctx.files = createFilesController(ctx);
   ctx.theory = createTheoryController(ctx);
   ctx.chart = createChartController(ctx);
+  ctx.analyzer = createAnalyzerController(ctx);
   bindNavigation(ctx);
   ctx.settings = createSettingsController(ctx);
   // Relative adjustments begin at neutral for an already saved working profile.

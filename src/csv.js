@@ -1,3 +1,5 @@
+import { createSyntheticMarker, inspectSyntheticMarker, SYNTHETIC_MARKER_COUNT } from './synthetic-marker.js';
+
 const MAX_POINTS = 30_000;
 const MAX_FILE_SIZE = 20_000_000;
 const TIME_FACTORS = { s: 1, ms: 0.001, us: 0.000001 };
@@ -50,7 +52,7 @@ function readRows(text, delimiter) {
     if (explicitRow || row.length > 1 || row.some(value => value !== '')) rows.push(row);
     row = [];
     explicitRow = false;
-    if (rows.length > MAX_POINTS + 1) throw new Error('CSV files are limited to 30,000 measurements.');
+    if (rows.length > MAX_POINTS + SYNTHETIC_MARKER_COUNT + 1) throw new Error('CSV files are limited to 30,000 measurements.');
   }
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
@@ -178,17 +180,29 @@ export function parseCSV(text, options = {}) {
     if (!Number.isFinite(timeValue) || !Number.isFinite(thrustValue)) throw new Error(`CSV row ${rowNumber} has a missing or invalid time or thrust value.`);
     return { time: timeValue * TIME_FACTORS[timeUnit], thrust: thrustValue * THRUST_FACTORS[thrustUnit] };
   });
-  return { points: validatePoints(points), headers, timeColumn: time.index, thrustColumn: thrust.index, warnings };
+  const syntheticMarker = inspectSyntheticMarker(points);
+  if (syntheticMarker.detected) warnings.push('Synthetic marker detected; 10 marker records were excluded from the profile.');
+  return { points: validatePoints(syntheticMarker.profilePoints), headers, timeColumn: time.index, thrustColumn: thrust.index, warnings, syntheticMarker };
 }
 
-export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6 } = {}) {
+export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true } = {}) {
   const validated = validatePoints(points);
   if (!(timeUnit in TIME_FACTORS) || !(thrustUnit in THRUST_FACTORS)) throw new Error('Unsupported export unit.');
   if (![',', ';', '\t'].includes(delimiter)) throw new Error('Unsupported export delimiter.');
   if (!Number.isInteger(precision) || precision < 0 || precision > 15) throw new Error('Export precision must be an integer from 0 to 15.');
+  if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
+  // Marker precision is independent of the selected rounding for actual thrust values.
+  const markerPoints = syntheticMarker ? createSyntheticMarker(validated) : [];
+  let previousTime = -Infinity;
+  for (const point of [...markerPoints, ...validated]) {
+    const time = point.time / TIME_FACTORS[timeUnit];
+    if (!Number.isFinite(time) || time <= previousTime) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
+    previousTime = time;
+  }
+  const prefix = markerPoints.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${point.thrust / THRUST_FACTORS[thrustUnit]}`);
   // Preserve timestamp precision so export never merges distinct measurements.
   const rows = validated.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${Number((point.thrust / THRUST_FACTORS[thrustUnit]).toFixed(precision))}`);
-  return [`Time (${timeUnit})${delimiter}Thrust (${thrustUnit})`, ...rows].join('\r\n') + '\r\n';
+  return [`Time (${timeUnit})${delimiter}Thrust (${thrustUnit})`, ...prefix, ...rows].join('\r\n') + '\r\n';
 }
 
 export function downloadFile(filename, content, type = 'text/plain') {
@@ -239,7 +253,7 @@ export function parseProject(text) {
   try { project = JSON.parse(text); }
   catch { throw new Error('This is not a valid Thrust Lab project file.'); }
   if (!project || project.version !== 1) throw new Error('Unsupported project version. This studio opens version 1 projects.');
-  const points = validatePoints(project.points);
+  const points = validatePoints(inspectSyntheticMarker(project.points).profilePoints);
   const name = typeof project.name === 'string' && project.name.trim() ? project.name.trim().slice(0, 200) : 'Untitled profile';
   let selection = null;
   if (project.selection != null) {
@@ -263,7 +277,10 @@ export function parseProject(text) {
   return result;
 }
 
-export function serializeProject(state) {
+export function serializeProject(state, { syntheticMarker = false } = {}) {
+  if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
   const project = { version: 1, name: state.name, points: state.points, theory: state.theory, selection: state.selection, scope: state.scope, showTheory: state.showTheory, showOriginal: state.showOriginal, original: state.original, generator: state.generator, generatorPending: state.generatorPending, theoryAlignment: state.theoryAlignment, curveEdit: state.curveEdit };
-  return JSON.stringify(parseProject(JSON.stringify(project)), null, 2) + '\n';
+  const canonical = parseProject(JSON.stringify(project));
+  if (syntheticMarker) canonical.points = [...createSyntheticMarker(canonical.points), ...canonical.points];
+  return JSON.stringify(canonical, null, 2) + '\n';
 }

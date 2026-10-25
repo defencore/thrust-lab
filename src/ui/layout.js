@@ -6,6 +6,7 @@ import { workspaceDialogs } from './dialogs.js';
 import { measurementPanel } from './measurement.js';
 import { renderAxisZoomControls } from './zoom-controls.js';
 import { brandMarkup } from './brand.js';
+import { renderAnalyzer } from './analyzer.js';
 
 function displayUnitControls(unitOptions) {
   return `<div class="display-units-bar" title="Display units change the chart, measurements, and editing fields. Imported data and CSV export settings stay unchanged."><span class="display-units-title">${icon('sliders')}Display units</span>${['thrust', 'time', 'impulse'].map(dimension => `<label><span>${{ thrust: 'Thrust', time: 'Time', impulse: 'Impulse' }[dimension]}</span><select id="display-${dimension}" aria-label="${{ thrust: 'Thrust display unit', time: 'Time display unit', impulse: 'Impulse display unit' }[dimension]}">${unitOptions[dimension].map(unit => `<option value="${escape(unit.value)}" title="${escape(unit.label)}">${escape(unit.symbol)}</option>`).join('')}</select></label>`).join('')}</div>`;
@@ -23,7 +24,7 @@ export function buildLayout({ name, presetCount, defaultPreset, catalogNotice, c
       <button class="button primary" id="export">${icon('download')}<span>Export</span>${icon('chevron')}</button>
     </div>
   </header>
-  <div class="workspace-bar"><nav class="workspace-modes" role="tablist" aria-label="Workspace"><button id="mode-edit" role="tab" aria-selected="true">${icon('chart')}Edit profile</button><button id="mode-create" role="tab" aria-selected="false">${icon('spark')}Create profile</button></nav><span id="workspace-caption">Editing workspace</span><button id="settings-open" class="button quiet small">${icon('sliders')}Saved settings</button></div>
+  <div class="workspace-bar"><nav class="workspace-modes" role="tablist" aria-label="Workspace"><button id="mode-edit" role="tab" aria-selected="true">${icon('chart')}Edit profile</button><button id="mode-create" role="tab" aria-selected="false">${icon('spark')}Create profile</button><button id="mode-analyzer" role="tab" aria-selected="false" aria-controls="analyzer-workspace">${icon('search')}Analyzer</button></nav><span id="workspace-caption">Editing workspace</span><button id="settings-open" class="button quiet small">${icon('sliders')}Saved settings</button></div>
   <div class="project-bar"><div class="project-title"><span class="eyebrow">PROFILE / 01</span><input id="project-name" aria-label="Profile name" maxlength="120" value="${escape(name)}"><span class="saved-dot" title="Saved in this browser"></span></div><div class="project-tools"><button id="focus-editor" class="button quiet small" aria-pressed="false">${icon('fit')}<span>Focus mode</span></button><button class="button quiet small" id="open-project">${icon('file')}<span>Open project</span></button><button class="button small" id="new-profile">${icon('plus')}<span>Create profile</span></button></div></div>
   <main class="studio">
     <aside class="library-panel panel"><section class="active-profile-card"><span class="eyebrow">ACTIVE PROFILE</span><div class="active-file-icon">${icon('file')}</div><h2 id="active-profile-name"></h2><p id="active-profile-meta"></p><p class="section-description">Edit the loaded curve with Transform, Curve, Signal, or Theory.</p><button id="import-another" class="button full">${icon('upload')}Import another CSV</button></section>
@@ -65,6 +66,7 @@ export function buildLayout({ name, presetCount, defaultPreset, catalogNotice, c
     ${inspectorControls()}
     ${creationInspector()}
   </main>
+  ${renderAnalyzer()}
   <footer class="status-bar"><span><i class="status-led"></i><span>Browser local</span></span><span id="data-status"></span><span class="status-hint">V Select <kbd>D</kbd> Draw <kbd>C</kbd> Curve <kbd>G</kbd> Shift profile <kbd>M</kbd> Measure <kbd>H</kbd> Pan <kbd>F</kbd> Fit</span><span class="version">THRUST LAB STUDIO <b>1.0</b></span></footer>
   <div id="toast" class="toast" role="status" hidden></div>
   ${workspaceDialogs({ catalogNotice, catalogSources })}

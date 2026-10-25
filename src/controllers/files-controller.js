@@ -68,10 +68,12 @@ export function createFilesController(ctx) {
     } catch (error) { $('#import-error').textContent = error.message; $('#import-error').hidden = false; }
   };
   function openExport() {
+    if (ui.screen === 'analyzer') return;
     const profile = ctx.activeProfile();
     $('#export-dialog .modal-heading h2').textContent = ui.mode === 'create' ? 'Export preview' : 'Export profile';
     $('#export-name').value = profile.name.replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-|-$/g, '').toLowerCase() || 'thrust-profile';
     $('#export-summary').textContent = `Exports all ${profile.points.length.toLocaleString('en-US')} measurements. Your entire timestamp sequence is retained.`;
+    $('#export-error').hidden = true;
     $('#export-dialog').showModal();
   }
   $('#export').onclick = openExport;
@@ -81,12 +83,14 @@ export function createFilesController(ctx) {
       const content = exportCSV(ctx.activeProfile().points, { timeUnit: $('#export-time').value, thrustUnit: $('#export-thrust').value, delimiter: $('#export-delimiter').value === 'tab' ? '\t' : $('#export-delimiter').value, precision: Number($('#export-precision').value) });
       downloadFile(`${$('#export-name').value.replace(/\.csv$/i, '')}.csv`, content, 'text/csv;charset=utf-8');
       $('#export-dialog').close(); ctx.notify('CSV exported with all measurement timestamps.');
-    } catch (error) { ctx.error(error); }
+    } catch (error) { $('#export-error').textContent = error.message; $('#export-error').hidden = false; }
   };
   $('#save-project').onclick = () => {
-    const project = ui.mode === 'create' ? applyDraftToEditor(store.get(), ctx.generator.getDraft()) : store.get();
-    downloadFile(`${$('#export-name').value || 'thrust-profile'}.thrustlab.json`, serializeProject(project), 'application/json');
-    $('#export-dialog').close(); ctx.notify('Project saved.');
+    try {
+      const project = ui.mode === 'create' ? applyDraftToEditor(store.get(), ctx.generator.getDraft()) : store.get();
+      downloadFile(`${$('#export-name').value || 'thrust-profile'}.thrustlab.json`, serializeProject(project, { syntheticMarker: true }), 'application/json');
+      $('#export-dialog').close(); ctx.notify('Project saved.');
+    } catch (error) { $('#export-error').textContent = error.message; $('#export-error').hidden = false; }
   };
   $('#open-project').onclick = () => $('#project-file').click();
   $('#project-file').onchange = async event => {

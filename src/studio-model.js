@@ -19,5 +19,5 @@ export function createInitialProject() {
 }
 
 export function createUIState(project) {
-  return { mode: 'edit', tool: 'select', view: [project.points[0].time, project.points.at(-1).time], thrustView: null, playhead: project.points[0].time, bottomTab: 'samples', inspectorTab: 'transform' };
+  return { screen: 'studio', mode: 'edit', tool: 'select', view: [project.points[0].time, project.points.at(-1).time], thrustView: null, playhead: project.points[0].time, bottomTab: 'samples', inspectorTab: 'transform' };
 }

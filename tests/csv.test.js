@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseCSV, inspectCSV, exportCSV, serializeProject, parseProject } from '../src/csv.js';
+import { createSyntheticMarker, inspectSyntheticMarker } from '../src/synthetic-marker.js';
 
 test('detects quoted headers, BOM, units, and Windows newlines', () => {
   const result = parseCSV('\uFEFF"Time (ms)","Thrust (kgf)",Comment\r\n0,0,"Ready, set"\r\n10,2,"Burn"\r\n20,0,End\r\n');
@@ -169,4 +170,100 @@ test('enforces measurement limit for imports and project loads', () => {
   const points = Array.from({ length: 30001 }, (_, time) => ({ time, thrust: 1 }));
   assert.throws(() => parseProject(JSON.stringify({ version: 1, points })), /30,000/);
   assert.throws(() => parseCSV('Time,Thrust\n' + points.map(point => `${point.time},1`).join('\n')), /30,000/);
+});
+
+test('every CSV export adds ten tiny marker records while retaining all actual data and times', () => {
+  const points = [{ time: 0, thrust: 81.123456789 }, { time: .0017, thrust: 111 }, { time: .097, thrust: .23 }], before = structuredClone(points);
+  const text = exportCSV(points), rows = text.trim().split('\r\n').slice(1).map(row => row.split(',').map(Number));
+  assert.equal(rows.length, points.length + 10);
+  assert.ok(rows.slice(0, 10).every(row => row[0] < 0 && row[1] > 0 && row[1] < 1e-7));
+  assert.deepEqual(rows.slice(10).map(row => row[0]), points.map(point => point.time));
+  assert.equal(rows[10][1], 81.123457);
+  assert.deepEqual(points, before);
+  const parsed = parseCSV(text);
+  assert.equal(parsed.syntheticMarker.detected, true);
+  assert.equal(parsed.syntheticMarker.scheme, 'thrust-lab-v1');
+  assert.equal(parsed.syntheticMarker.markerCount, 10);
+  assert.equal(parsed.points.length, points.length);
+  assert.match(parsed.warnings.join(' '), /10 marker records were excluded/);
+  assert.equal(parseCSV(exportCSV(parsed.points)).points.length, points.length);
+  assert.equal(exportCSV(parsed.points).trim().split('\r\n').length, points.length + 11);
+});
+
+test('marker detection survives every export unit, delimiter and selected thrust precision', () => {
+  const points = [{ time: 1.25, thrust: 20 }, { time: 1.5, thrust: 80 }, { time: 2.375, thrust: 0 }];
+  for (const timeUnit of ['s', 'ms', 'us']) for (const thrustUnit of ['N', 'kN', 'kgf', 'lbf']) for (const delimiter of [',', ';', '\t']) for (const precision of [0, 3, 6, 9, 15]) {
+    const text = exportCSV(points, { timeUnit, thrustUnit, delimiter, precision });
+    const parsed = parseCSV(text);
+    assert.equal(parsed.syntheticMarker.detected, true, `${timeUnit}/${thrustUnit}/${delimiter}/${precision}`);
+    assert.equal(parsed.points.length, points.length);
+    assert.deepEqual(parsed.points.map(point => point.time), points.map(point => point.time));
+  }
+});
+
+test('marked files retain column mappings, headerless input and decimal-comma parsing', () => {
+  const points = [{ time: 0, thrust: 4 }, { time: 1, thrust: 2 }];
+  const rows = exportCSV(points, { delimiter: ';' }).trim().split('\r\n');
+  const custom = ['Notes;Clock;Load', ...rows.slice(1).map(row => `record;${row}`)].join('\n');
+  assert.deepEqual(parseCSV(custom, { timeColumn: 'Clock', thrustColumn: 'Load' }).points, points);
+  assert.equal(parseCSV(rows.slice(1).join('\n'), { hasHeader: false }).syntheticMarker.detected, true);
+  const decimalComma = rows.map((row, index) => index ? row.split(';').map(value => value.replace('.', ',')).join(';') : row).join('\n');
+  assert.deepEqual(parseCSV(decimalComma).points, points);
+});
+
+test('missing or damaged marker samples are never silently hidden from imported data', () => {
+  const points = [{ time: 0, thrust: 80 }, { time: 1, thrust: 0 }];
+  const raw = [...createSyntheticMarker(points), ...points];
+  raw[4].thrust *= 1.001;
+  const text = 'Time,Thrust\n' + raw.map(point => `${point.time},${point.thrust}`).join('\n');
+  const result = parseCSV(text);
+  assert.equal(result.syntheticMarker.detected, false);
+  assert.deepEqual(result.points, raw);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(parseCSV(exportCSV(points, { syntheticMarker: false })).syntheticMarker.detected, false);
+  assert.throws(() => exportCSV(points, { syntheticMarker: 'yes' }), /true or false/);
+});
+
+test('the full measurement limit permits a recognized marker but never extra unmarked measurements', () => {
+  const points = Array.from({ length: 30000 }, (_, index) => ({ time: index / 100, thrust: index % 100 }));
+  const marked = parseCSV(exportCSV(points));
+  assert.equal(marked.syntheticMarker.detected, true);
+  assert.deepEqual(marked.points, points);
+  const raw = [...createSyntheticMarker(points), ...points];
+  raw[0].thrust = 0;
+  assert.throws(() => parseCSV('Time,Thrust\n' + raw.map(point => `${point.time},${point.thrust}`).join('\n')), /30,000/);
+  const longer = [...points, { time: 301, thrust: 0 }];
+  assert.throws(() => exportCSV(longer), /30,000/);
+});
+
+test('native project saves can carry a marker while canonical snapshots remain clean', () => {
+  const points = [{ time: 0, thrust: 80 }, { time: .13, thrust: 100 }, { time: 1, thrust: 0 }];
+  const state = { name: 'Marked project', points, original: points, theory: points, selection: [0, .13], scope: 'selection', curveEdit: { nodes: points, range: null, interpolation: 'smooth' } };
+  const expected = parseProject(serializeProject(state));
+  const text = serializeProject(state, { syntheticMarker: true }), raw = JSON.parse(text);
+  assert.equal(raw.points.length, points.length + 10);
+  assert.equal(inspectSyntheticMarker(raw.points).detected, true);
+  assert.deepEqual(raw.original, points);
+  assert.deepEqual(raw.theory, points);
+  assert.deepEqual(raw.selection, state.selection);
+  assert.deepEqual(raw.curveEdit, state.curveEdit);
+  assert.deepEqual(parseProject(text), expected);
+  const internal = JSON.parse(serializeProject(parseProject(text)));
+  assert.deepEqual(internal.points, points);
+  assert.equal(inspectSyntheticMarker(internal.points).detected, false);
+  assert.equal(JSON.parse(serializeProject(parseProject(text), { syntheticMarker: true })).points.length, points.length + 10);
+  assert.throws(() => serializeProject(state, { syntheticMarker: 1 }), /true or false/);
+});
+
+test('native project marker handling preserves the full 30,000 actual measurements', () => {
+  const points = Array.from({ length: 30000 }, (_, time) => ({ time, thrust: 1 }));
+  const text = serializeProject({ points }, { syntheticMarker: true });
+  assert.equal(JSON.parse(text).points.length, 30010);
+  assert.deepEqual(parseProject(text).points, points);
+});
+
+test('unrepresentable export units fail before emitting nonfinite or merged timestamps', () => {
+  const points = [{ time: 1e303, thrust: 1 }, { time: 1.1e303, thrust: 0 }];
+  assert.throws(() => exportCSV(points, { timeUnit: 'us' }), /cannot represent these timestamps/);
+  assert.equal(parseCSV(exportCSV(points)).syntheticMarker.detected, true);
 });
