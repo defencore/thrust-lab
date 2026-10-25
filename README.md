@@ -181,7 +181,7 @@ npm run build
 npm run preview
 ```
 
-The production output is `dist/`. It contains only static assets. `typecheck` validates JavaScript syntax across application modules, scripts, and tests. The included example is available at `public/examples/example-profile.csv` and at `examples/example-profile.csv` in the built site.
+The production output is `dist/`. It contains only static assets. The complete application source is copied to `dist/assets/<sha256>/`, and the built HTML points to that version's JavaScript and CSS. The SHA-256 version includes sorted source paths and file contents, so any source change gives all relative module and stylesheet imports fresh URLs. Hidden files and generated source folders are excluded. Development continues to load `./src/app.js` and `./src/styles.css` directly. `typecheck` validates JavaScript syntax across application modules, scripts, and tests. The included example is available at `public/examples/example-profile.csv` and at `examples/example-profile.csv` in the built site.
 
 ## GitHub Pages deployment
 
@@ -194,6 +194,8 @@ The included `.github/workflows/deploy.yml` runs tests, builds the application, 
 5. Once domain validation and certificate issuance finish, enable **Enforce HTTPS** in GitHub Pages settings.
 
 `public/CNAME` is copied to the production output. No server-side routing or runtime configuration is needed. The repository includes deployment preparation; DNS configuration and a completed GitHub Pages deployment are separate external steps.
+
+Versioned asset paths prevent a CDN or browser from mixing old JavaScript or CSS with a new deployment. The favicon uses the same content version as a query parameter. A page already open during deployment needs to be reloaded to obtain the new HTML; a CDN that caches HTML must allow that document to refresh.
 
 ## Synthetic export marker and analyzer
 
