@@ -1,0 +1,165 @@
+@media (min-width: 1600px) {
+  .studio { grid-template-columns: 245px minmax(500px, 1fr) 285px; gap: 20px; }
+  .profile-chart { height: 410px; }
+  .metric { min-height: 105px; }
+  .preset-card { min-height: 61px; }
+  .preset-spark { width: 48px; }
+  .inspector-content > section { padding: 23px 19px; }
+  .generator-panel { padding: 21px 23px 18px; }
+  .sampling-strip { gap: 15px; }
+}
+@media (max-width: 1250px) {
+  .studio { grid-template-columns: 185px minmax(350px, 1fr) 232px; gap: 11px; padding-left: 16px; padding-right: 16px; }
+  .project-bar, .app-header { padding-left: 17px; padding-right: 17px; }
+  .workspace-caption, .header-divider { display: none; }
+  .preset-spark { width: 27px; }
+  .preset-card { gap: 7px; padding-left: 4px; padding-right: 4px; }
+  .preset-info strong small { font-size: 12px; }
+  .motor-class { width: 22px; height: 27px; font-size: 12px; }
+  .metrics-grid { gap: 7px; }
+  .metric { padding: 12px 10px; }
+  .metric > span { font-size: 12px; letter-spacing: .6px; }
+  .metric small { font-size: 12px; }
+  .metric p { font-size: 12px; }
+  .chart-heading { padding-left: 18px; padding-right: 18px; }
+  .chart-legend { gap: 9px; font-size: 12px; }
+  .tool-caption { font-size: 12px; }
+  .generator-grid { gap: 9px; }
+  .generator-panel { padding-left: 14px; padding-right: 14px; }
+  .sampling-strip { flex-wrap: wrap; gap: 9px; }
+  .sampling-label { display: none; }
+  .sampling-strip > label:not(.compact-field) { min-width: 125px; }
+  .seed-field { margin-left: auto; }
+  .generator-footer p { font-size: 12px; }
+  .bottom-tabs { gap: 10px; padding: 0 12px; }
+  .bottom-tabs > button { font-size: 12px; gap: 5px; }
+  .bottom-tabs-end { display: none; }
+  .inspector-content > section { padding-left: 13px; padding-right: 13px; }
+  .version { display: none !important; }
+}
+@media (max-width: 1050px) {
+  .studio { grid-template-columns: minmax(340px, 1fr) 250px; }
+  .library-panel { grid-column: 1 / -1; display: grid; grid-template-columns: 160px 1fr; padding: 8px; }
+  .library-panel > .panel-heading { padding: 5px 9px; min-height: 27px; }
+  .library-search { grid-column: 1; margin: 3px 7px; }
+  .preset-list { grid-column: 2; grid-row: 1 / 3; display: flex; gap: 6px; padding: 0 5px 0 8px; overflow-x: auto; max-height: 80px; border-left: 1px solid var(--line); }
+  .preset-card { width: 123px; min-width: 123px; min-height: 58px; margin: 0; gap: 6px; padding: 7px; }
+  .preset-info strong { flex-direction: column; gap: 0; }
+  .preset-info strong small { font-size: 12px; }
+  .preset-info > span { font-size: 12px; }
+  .preset-spark { display: none; }
+  .section-label, .library-notice, .library-bottom, .layers-section { display: none; }
+  .metric strong { font-size: 25px; }
+  .metric > span { font-size: 12px; }
+  .metric p { font-size: 12px; }
+  .profile-chart { height: 330px; }
+  .chart-heading h1 { font-size: 13px; }
+  .generator-grid { gap: 10px; }
+  .generator-footer p { font-size: 12px; }
+  .generator-footer { flex-wrap: wrap; }
+  .status-hint { display: none !important; }
+  .status-bar > span:nth-child(2) { margin-left: auto; }
+  .local-badge { display: none; }
+}
+@media (max-width: 760px) {
+  .app-header { height: 58px; padding: 0 12px; gap: 10px; }
+  .header-actions { gap: 5px; }
+  .header-actions .button { min-height: 31px; padding: 6px 8px; }
+  .header-actions .button span { display: none; }
+  .header-actions #export .icon:last-child { display: none; }
+  .guide-button, .history-controls { display: none !important; }
+  .project-bar { padding: 13px 12px; gap: 4px; }
+  .project-title { gap: 5px; }
+  .project-title .eyebrow { display: none; }
+  .project-title input#project-name { font-size: 12px; }
+  .project-tools .button { font-size: 12px; padding: 4px 6px; }
+  .project-tools #open-project span { display: none; }
+  #focus-editor { display: none; }
+  .studio { grid-template-columns: minmax(0, 1fr); padding: 0 10px 15px; gap: 12px; }
+  .library-panel { grid-template-columns: 100px 1fr; padding: 5px; }
+  .library-panel h2 { font-size: 12px; }
+  .library-panel .count { display: none; }
+  .library-search { margin: 0 5px; }
+  .library-search .icon { width: 11px; height: 11px; top: 10px; left: 5px; }
+  .library-search input#preset-search { padding-left: 20px; font-size: 12px; }
+  .preset-card { min-width: 106px; width: 106px; padding: 6px; }
+  .preset-list { padding-left: 5px; }
+  .metrics-grid { gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { min-height: 86px; padding: 9px 8px; }
+  .metric > span { font-size: 12px; letter-spacing: .6px; }
+  .metric strong { font-size: 24px; letter-spacing: -.7px; }
+  .metric small { font-size: 12px; }
+  .metric > div { gap: 3px; }
+  .metric p { font-size: 12px; margin-top: 6px; }
+  .work-area { gap: 12px; }
+  .chart-toolbar { padding: 6px 9px; gap: 7px; }
+  .mobile-history { display: flex; border-left: 1px solid var(--line); padding-left: 4px; }
+  .mobile-history .icon-button { width: 25px; }
+  .mobile-history .icon { width: 14px; height: 14px; }
+  .chart-toolbar .toolbar-separator, .chart-toolbar .tool-caption { display: none; }
+  .tool-caption { max-width: 100px; font-size: 12px; }
+  .chart-heading { padding: 16px 15px 6px; align-items: flex-start; }
+  .chart-heading h1 { font-size: 12px; max-width: 200px; }
+  .chart-heading .eyebrow { font-size: 6px; }
+  .chart-legend { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 12px; margin-top: 2px; }
+  .chart-legend i { width: 10px; }
+  .profile-chart { height: 300px; }
+  .axis-label { font-size: 12px; }
+  .chart-bottom { padding-left: 14px; padding-right: 14px; gap: 6px; flex-wrap: wrap; }
+  .timestamp-lock { font-size: 12px; }
+  #selection-summary { font-size: 12px; }
+  #clear-selection { font-size: 12px; }
+  .timeline { padding: 10px 14px 6px; }
+  .timeline-footer { font-size: 12px; }
+  .cursor-value { min-width: 52px; padding-left: 5px; }
+  .timeline-footer label { gap: 3px; }
+  .bottom-tabs { gap: 12px; padding: 0 12px; }
+  .bottom-tabs > button { font-size: 12px; gap: 5px; }
+  .bottom-tabs .icon { width: 11px; height: 11px; }
+  .bottom-tabs .count { font-size: 12px; }
+  .generator-panel { padding: 14px 13px; }
+  .generator-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .generator-grid label { font-size: 12px; }
+  .generator-grid input, .generator-grid select { font-size: 12px; }
+  .sampling-strip { gap: 10px; margin-top: 14px; }
+  .sampling-strip > label:not(.compact-field) { min-width: calc(100% - 92px); }
+  .sampling-strip .seed-field { margin-left: 0; flex: 1; }
+  .sampling-strip .seed-field input { width: 70px; flex: 1; }
+  .compact-field { font-size: 12px; }
+  .compact-field input, .sampling-strip select { font-size: 12px; }
+  .generator-footer { margin-top: 12px; gap: 8px; }
+  .generator-footer p { min-width: 100%; font-size: 12px; }
+  .generator-footer .button { flex: 1; font-size: 12px; min-height: 34px; }
+  .inspector { display: block; }
+  .inspector > .panel-heading { min-height: 44px; }
+  .scope-switch { max-width: 330px; margin-left: 15px; }
+  .selection-fields { max-width: 360px; }
+  .inspector-content { display: grid; grid-template-columns: 1fr; }
+  .inspector-content > section { padding: 20px 17px; }
+  .inspector-content > section > label > .input-unit { width: 135px; }
+  .inspector-content > section > label > select { width: 135px; }
+  .sampled-noise-section > label > select { width: 100% !important; }
+  .inspector-content .button { min-height: 36px; font-size: 12px; }
+  .inspector-content h3 { font-size: 12px; }
+  .section-description { font-size: 12px; }
+  .inspector-content > section > label { font-size: 12px !important; }
+  .inspector-content input, .inspector-content select { height: 34px; font-size: 12px; }
+  .status-bar { padding: 11px 12px; font-size: 12px; gap: 10px; }
+  .sample-toolbar { font-size: 12px; flex-wrap: wrap; }
+  .data-table td, .data-table th { padding-left: 10px; padding-right: 10px; }
+  .sample-table-scroll { max-width: 100%; }
+  .modal { padding: 20px; }
+  .modal-heading h2 { font-size: 19px; }
+  .mapping-grid { gap: 13px; }
+  .modal select { font-size: 12px; }
+  .language-picker { width: 45px; margin-right: 0; }
+  html[lang="uk"] .bottom-tabs { gap: 10px; }
+  html[lang="uk"] .bottom-tabs > button { font-size: 12px; }
+  .project-save-option { flex-wrap: wrap; }
+  .project-save-option .button { margin-left: 29px; }
+  .shortcut-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .guide-steps { gap: 17px; }
+  .guide-steps article { gap: 11px; }
+  .guide-callout { margin: 19px 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

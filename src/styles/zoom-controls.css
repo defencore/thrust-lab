@@ -1,0 +1,25 @@
+/* Axis zooming is a separate view control, leaving editing tools focused. */
+.axis-zoom-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 12px; padding: 5px 13px; border-bottom: 1px solid var(--line); background: #f8fafc; }
+.axis-zoom-group { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.axis-zoom-label { margin-right: 5px; color: #74899e; font-size: 12px; font-weight: 550; }
+.axis-zoom-group .icon-button { width: 25px; height: 25px; padding: 4px; color: #69829a; }
+.axis-zoom-group .icon { width: 14px; height: 14px; }
+.thrust-zoom-group { padding-left: 12px; border-left: 1px solid #dfe7ee; }
+.thrust-scale-status { padding: 2px 6px; margin-left: 3px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; border: 1px solid #e0e8ef; border-radius: 4px; background: #fff; color: #8798a8; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.thrust-scale-status.manual { color: #316b9e; background: #edf5fc; border-color: #bfd5e8; }
+.axis-zoom-controls .fit-all-axes { min-height: 25px; padding: 3px 6px; gap: 5px; margin-left: auto; color: #6c839a; font-size: 12px; }
+.fit-all-axes .icon { width: 13px; height: 13px; }
+.fit-all-axes kbd { padding: 0 3px; font-size: 12px; }
+.axis-zoom-help { display: inline-flex; align-items: center; gap: 4px; color: #91a0b0; font-size: 12px; white-space: nowrap; cursor: help; }
+.axis-zoom-help .icon { width: 12px; height: 12px; }
+.guide-axis-note { color: #7c8fa4; font-size: 12px; line-height: 1.8; padding: 0 0 14px; }
+@media (max-width: 1250px) { .axis-zoom-help { display: none; } .axis-zoom-controls { gap: 5px 8px; } .thrust-zoom-group { padding-left: 8px; } }
+@media (max-width: 760px) {
+  .axis-zoom-controls { padding: 6px 9px; gap: 5px 8px; }
+  .axis-zoom-group { gap: 0; }
+  .axis-zoom-label { margin-right: 3px; font-size: 12px; }
+  .axis-zoom-group .icon-button { width: 24px; }
+  .thrust-scale-status { font-size: 12px; max-width: 105px; }
+  .axis-zoom-controls .fit-all-axes { font-size: 12px; }
+  .axis-zoom-help { margin-left: auto; }
+}

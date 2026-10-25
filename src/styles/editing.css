@@ -1,0 +1,72 @@
+/* Live editing controls and selected curve anchors share the chart's accent. */
+.live-status { font-size: 12px; color: #638074; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 255px; }
+.app-header { gap: 18px; }
+.chart-legend { gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.inspector-tabs { padding: 0 10px; gap: 3px; }
+.inspector-tabs button { font-size: 12px; }
+.inspector-content section > label.live-effect-toggle,
+.sampled-noise-section > label.live-effect-toggle { display: flex; flex-direction: row !important; align-items: center !important; justify-content: space-between; gap: 12px !important; padding: 9px 10px; margin-top: 13px; border: 1px solid #e0e7ef; border-radius: 5px; background: #f8fafc; cursor: pointer; }
+.inspector-content section > label.live-effect-toggle:has(input:checked) { border-color: #c1d6ed; color: #285e99; background: #edf4fc; }
+.inspector-content section > label.live-effect-toggle > input { width: 14px !important; height: 14px !important; flex-shrink: 0; margin: 0; }
+.live-edit-note { font-size: 12px; color: #7f91a6; line-height: 1.7; }
+.curve-setup { margin-top: 15px; }
+.curve-setup label { display: flex; flex-direction: row; align-items: center; justify-content: space-between; font-size: 12px; }
+.curve-setup select { width: 75px; }
+.curve-edit-status { display: flex; align-items: center; gap: 7px; margin: 16px 0 7px; font-size: 12px; font-weight: 600; color: #356da7; }
+.curve-edit-status > span { width: 6px; height: 6px; border-radius: 50%; background: #4384c4; box-shadow: 0 0 0 3px #e8f1fa; }
+.curve-interpolation-label { margin: 15px 0 12px; }
+.curve-inspector .curve-interpolation-label select { font-size: 12px; }
+.curve-node-list { display: flex; flex-direction: column; gap: 5px; max-height: 230px; overflow-y: auto; margin: 12px 0; padding: 2px; scrollbar-width: thin; }
+.curve-node-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr) 13px; gap: 6px; align-items: center; width: 100%; padding: 8px 7px; border: 1px solid #e3e9f0; border-radius: 5px; background: #fff; color: #7b8ca0; text-align: left; font-size: 12px; font-variant-numeric: tabular-nums; }
+.curve-node-row > span:first-child { display: flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 4px; background: #f0f4f8; color: #58728f; font-size: 12px; font-weight: 600; }
+.curve-node-row strong { color: #58718d; font-size: 12px; font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; }
+.curve-node-row .icon { width: 12px; height: 12px; color: #9eacba; }
+.curve-node-row:hover { border-color: #b7cee5; background: #f7fafe; }
+.curve-node-row.selected { color: #285e99; border-color: #80a9d2; background: #eaf3fd; box-shadow: 0 0 0 1px #d6e7f8; }
+.curve-node-row.selected > span:first-child { background: #2d70b4; color: #fff; }
+.curve-node-row.selected strong, .curve-node-row.selected .icon { color: #235c97; }
+.curve-point-status { padding: 8px 9px; border-left: 2px solid #8dafd0; background: #f5f8fc; color: #68819c; font-size: 12px; line-height: 1.6; margin-bottom: 12px; }
+.curve-edit-status ~ label:not(.checkbox-row) { margin-top: 12px; }
+#curve-edit-controls > label:not(.checkbox-row) { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #65758a; }
+#curve-edit-controls > label > .input-unit { width: 105px; }
+#curve-edit-controls > label > select { width: 125px; }
+#curve-edit-controls input:disabled { background: #f3f5f8; color: #98a5b3; border-color: #e2e8ef; cursor: not-allowed; }
+.curve-boundary-note { margin-top: 12px; }
+.curve-point-actions { display: flex; gap: 6px; margin-top: 13px; }
+.curve-point-actions .button { flex: 1; min-width: 0; padding-left: 6px; padding-right: 6px; white-space: normal; text-align: center; font-size: 12px; }
+.curve-point-actions .button .icon { width: 12px; height: 12px; }
+.curve-match-note { margin-top: 10px; }
+.noise-match-section .section-description { margin-top: 8px; }
+.noise-match-report { padding: 12px 10px; margin-top: 14px; border: 1px solid #dce7ef; border-radius: 5px; background: #f7fafc; }
+.noise-match-report h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: #627d99; }
+.noise-match-report > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 5px; font-size: 12px; color: #7a8fa6; }
+.noise-match-report strong { font-weight: 500; color: #516f8e; font-variant-numeric: tabular-nums; }
+.profile-chart[data-tool="curve"] { cursor: crosshair; }
+.profile-chart[data-tool="shift"] { cursor: ew-resize; }
+.shift-clipping-note { margin-top: 6px; color: #8a7862; }
+.curve-base-path { fill: none; stroke: #9caec1; stroke-width: 1.3; stroke-dasharray: 3 4; opacity: .5; }
+.curve-influence-fill { fill: #397fbc; fill-opacity: .045; pointer-events: none; }
+.curve-influence-edge { stroke: #397fbc; stroke-opacity: .35; stroke-width: 1; stroke-dasharray: 2 5; pointer-events: none; }
+.curve-control-node { fill: #fff; stroke: #347abd; stroke-width: 2; cursor: grab; vector-effect: non-scaling-stroke; }
+.curve-control-node.boundary { fill: #eef4fa; stroke: #6c8ead; }
+.curve-control-node.selected { r: 8px; fill: #246fb6; stroke: #fff; stroke-width: 2.5; filter: drop-shadow(0 1px 2px #1f4e7e44); }
+.curve-control-node:active { cursor: grabbing; }
+.curve-node-halo { r: 16px; fill: #357fbd; fill-opacity: .14; stroke: #397fbc; stroke-opacity: .45; stroke-width: 1; pointer-events: none; }
+.curve-node-guide { fill: none; stroke: #4b88be; stroke-opacity: .45; stroke-width: 1; stroke-dasharray: 4 4; pointer-events: none; }
+.curve-node-label { fill: #396b9b; font-size: 12px; font-weight: 600; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.curve-node-value { fill: #235e94; font-size: 12px; font-weight: 600; font-family: "SFMono-Regular", Consolas, monospace; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+@media (max-width: 1450px) { .live-status { max-width: 175px; font-size: 12px; } .app-header { gap: 12px; } }
+@media (max-width: 1150px) { .live-status { display: none; } }
+@media (max-width: 760px) {
+  .chart-legend { gap: 5px; flex-direction: row; max-width: 140px; font-size: 12px; }
+  .inspector-tabs { gap: 8px; }
+  .inspector-tabs button { font-size: 12px; min-height: 43px; }
+  .curve-node-list { max-height: 210px; }
+  .curve-node-row { font-size: 12px; padding: 9px; grid-template-columns: 25px minmax(0, 1fr) minmax(0, 1fr) 14px; }
+  .curve-node-row strong { font-size: 12px; }
+  .curve-node-row > span:first-child { width: 24px; height: 24px; font-size: 12px; }
+  .curve-point-actions .button { font-size: 12px; min-height: 35px; }
+  #curve-edit-controls > label > .input-unit { width: 135px; }
+  #curve-edit-controls > label > select { width: 150px; }
+  .curve-point-status { font-size: 12px; }
+}

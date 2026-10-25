@@ -1,0 +1,77 @@
+/* Editing and creation are separate workspaces with independent profile data. */
+.display-units-bar { display: flex; align-items: center; gap: 18px; min-height: 40px; padding: 7px 13px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfe; }
+.display-units-title { display: flex; align-items: center; gap: 7px; color: #788ba2; font-size: 12px; white-space: nowrap; margin-right: auto; }
+.display-units-title .icon { width: 13px; height: 13px; }
+.display-units-bar label { flex-direction: row; align-items: center; gap: 6px; font-size: 12px; color: #7e90a5; }
+.display-units-bar select { height: 25px; padding: 2px 5px; min-width: 54px; width: auto; font-size: 12px; color: #536f90; border-color: #d9e2eb; background: white; }
+.display-units-bar label:last-child select { min-width: 64px; }
+@media (max-width: 1250px) { .display-units-bar { gap: 10px; flex-wrap: wrap; } .display-units-title { min-width: 100%; margin-bottom: 1px; } }
+@media (max-width: 760px) { .display-units-bar { gap: 10px; padding: 9px 11px; } .display-units-bar label { font-size: 12px; gap: 4px; } .display-units-bar select { min-width: 51px; font-size: 12px; } .display-units-title { font-size: 12px; } }
+.workspace-bar { display: flex; align-items: center; gap: 24px; padding: 0 23px; border-bottom: 1px solid var(--line); background: #fafbfd; min-height: 47px; }
+.workspace-modes { display: flex; align-items: stretch; gap: 22px; align-self: stretch; }
+.workspace-modes button { display: flex; align-items: center; gap: 8px; padding: 0 3px; border: 0; border-bottom: 2px solid transparent; color: #7c8ba0; background: transparent; font-weight: 500; font-size: 12px; }
+.workspace-modes button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.workspace-modes .icon { width: 15px; height: 15px; }
+#workspace-caption { font-size: 12px; color: #98a4b3; border-left: 1px solid var(--line); padding-left: 20px; }
+#settings-open { margin-left: auto; font-size: 12px; color: #7a8ba0; }
+.active-profile-card { padding: 19px 15px 17px; }
+.active-profile-card .eyebrow { font-size: 8px; color: #8293a8; }
+.active-file-icon { margin: 20px 0 11px; display: flex; width: 38px; height: 41px; border: 1px solid #d8e3ef; border-radius: 6px; background: #f4f8fc; align-items: center; justify-content: center; color: #6188b2; }
+.active-file-icon .icon { width: 21px; height: 21px; }
+.active-profile-card h2 { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+#active-profile-meta { font-size: 12px; color: #8194aa; margin-top: 6px; }
+.active-profile-card .section-description { font-size: 12px; line-height: 1.9; margin-top: 16px; }
+.active-profile-card .button { margin-top: 17px; font-size: 12px; }
+body[data-workspace="edit"] .library-panel > .panel-heading,
+body[data-workspace="edit"] .library-search,
+body[data-workspace="edit"] .section-label,
+body[data-workspace="edit"] .preset-list,
+body[data-workspace="edit"] .library-notice,
+body[data-workspace="edit"] #create-controls,
+body[data-workspace="edit"] #creation-inspector { display: none; }
+body[data-workspace="create"] .active-profile-card,
+body[data-workspace="create"] .layers-section,
+body[data-workspace="create"] .inspector,
+body[data-workspace="create"] .bottom-panel { display: none; }
+.creation-controls-heading { display: flex; flex-wrap: wrap; gap: 7px 16px; align-items: center; padding: 16px 19px 0; }
+.creation-controls-heading h2 { font-size: 12px; }
+.creation-controls-heading > span { font-size: 12px; color: #8093aa; }
+.creation-inspector { padding-bottom: 16px; }
+.creation-intro { color: #788ba1; line-height: 1.9; font-size: 12px; padding: 0 17px; }
+.creation-steps { list-style: none; padding: 20px 17px; margin: 0; font-size: 12px; color: #7188a0; display: flex; flex-direction: column; gap: 13px; }
+.preview-state { margin: 0 17px; padding: 11px 10px; background: #f1f7f6; border: 1px solid #d7e5e0; border-radius: 5px; display: flex; align-items: center; gap: 7px; color: #527b6d; }
+.preview-state strong { font-size: 12px; font-weight: 500; }
+#preview-details { padding: 8px 18px 0; color: #8a9bae; font-size: 12px; }
+#adopt-draft { width: calc(100% - 34px); margin: 18px 17px 0; font-size: 12px; min-height: 36px; }
+.creation-adopt-note { margin: 11px 18px 22px; color: #8d9bad; font-size: 12px; line-height: 1.8; }
+.working-profile-kept { margin: 0 13px; padding: 14px 12px; border: 1px solid #e2e8ef; border-radius: 5px; background: #fbfcfe; }
+.working-profile-kept .eyebrow { font-size: 7px; letter-spacing: .7px; margin-bottom: 8px; }
+.working-profile-kept strong { font-size: 12px; line-height: 1.8; font-weight: 550; overflow-wrap: anywhere; display: block; }
+.working-profile-kept p { color: #8d9eb2; font-size: 12px; line-height: 1.8; margin-top: 7px; }
+.working-profile-kept .button { font-size: 12px; }
+.live-edit-note { font-size: 12px; color: #8a9ab0; margin-top: 10px; line-height: 1.7; }
+.settings-modal { width: 510px; }
+.settings-modal .modal-description { line-height: 1.9; }
+.settings-status { padding: 11px 13px; border-radius: 4px; color: #537f6a; background: #f0f6f3; border: 1px solid #dce9e1; font-size: 12px; }
+.settings-reset { border-top: 1px solid var(--line); margin-top: 25px; padding-top: 20px; }
+.settings-reset p { font-size: 12px; color: #8798ab; margin: 8px 0 18px; line-height: 1.9; }
+.settings-reset .button { color: #9c6655; border-color: #ddc8be; }
+.remembered-import-note { margin-top: 18px; padding: 9px 11px; border: 1px solid #dce7ef; border-radius: 4px; background: #f4f8fc; color: #6c8ba8; font-size: 12px; }
+@media (min-width: 761px) { .creation-inspector { position: sticky; top: 15px; max-height: calc(100dvh - 30px); overflow-y: auto; scrollbar-width: thin; } }
+@media (max-width: 1050px) {
+  body[data-workspace="edit"] .library-panel { display: none; }
+}
+@media (max-width: 760px) {
+  .workspace-bar { padding: 0 11px; gap: 12px; }
+  .workspace-modes { gap: 14px; }
+  .workspace-modes button { gap: 5px; font-size: 12px; }
+  #workspace-caption { display: none; }
+  #settings-open { padding-left: 4px; padding-right: 4px; font-size: 12px; gap: 5px; }
+  #settings-open .icon { width: 13px; height: 13px; }
+  .creation-controls-heading { padding-left: 14px; padding-right: 14px; }
+  .creation-controls-heading h2 { font-size: 12px; }
+  .creation-controls-heading > span { font-size: 12px; line-height: 1.8; }
+  .creation-inspector .panel-heading h2 { font-size: 13px; }
+  .creation-intro { font-size: 12px; }
+  .creation-adopt-note, .working-profile-kept p { font-size: 12px; }
+}

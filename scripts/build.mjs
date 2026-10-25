@@ -1,0 +1,12 @@
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import './check.mjs';
+await rm('dist', { recursive: true, force: true });
+await mkdir('dist');
+await cp('index.html', 'dist/index.html');
+await cp('src', 'dist/src', { recursive: true });
+await cp('public', 'dist', { recursive: true });
+await writeFile('dist/.nojekyll', '');
+const page = await readFile('dist/index.html', 'utf8');
+if (!page.includes('./src/app.js')) throw new Error('Missing browser entry point');
+if ((await readFile('dist/CNAME', 'utf8')).trim() !== 'thrustlab.defencore.com') throw new Error('Invalid custom domain');
+console.log('Static site ready in dist/ for GitHub Pages.');

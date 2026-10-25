@@ -1,0 +1,60 @@
+/* The matching workbench makes coupled targets and achieved results explicit. */
+.theory-source-section > h3 { margin-bottom: 7px; }
+.theory-source-options { margin-top: 14px; }
+.theory-source-options > summary { padding: 10px 0; color: #516d88; cursor: pointer; font-size: 12px; font-weight: 600; }
+.theory-source-options > summary:focus-visible { outline-offset: 2px; }
+.theory-source-actions { display: grid; gap: 7px; margin: 3px 0 12px; }
+.theory-source-actions .button { margin-top: 0; white-space: normal; }
+.theory-source-options .theory-alignment-panel { margin: 16px 0; padding: 14px 0; }
+.theory-source-options .theory-alignment-panel h4 { margin: 0 0 8px; font-size: 12px; }
+.theory-source-options .theory-alignment-panel label { flex-direction: column; align-items: stretch; }
+.theory-source-options .theory-alignment-panel .input-unit { width: 100%; }
+.theory-source-options > .checkbox-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin-top: 14px; }
+.theory-source-options > .checkbox-row input { width: 16px; height: 16px; }
+.theory-fit-intro h3 { font-size: 15px; }
+.theory-fit-intro .section-description { margin-top: 8px; }
+.theory-fit-scope { margin-top: 10px; color: #64809a; font-size: 12px; line-height: 1.6; }
+.theory-fit-noise-report { padding: 10px 11px; margin-top: 12px; color: #3e7879; background: #f0f7f7; border: 1px solid #d5e6e5; border-radius: 5px; font-size: 12px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.theory-fit-noise-report:empty { display: none; }
+.theory-fit-panel .theory-fit-toggle { margin-top: 16px; padding: 11px 12px; }
+.theory-fit-status { padding: 11px 12px; margin-top: 12px; border: 1px solid #dbe7f0; border-radius: 6px; color: #4b6c88; background: #f3f8fc; font-size: 12px; line-height: 1.6; }
+.theory-fit-error { position: sticky; top: 8px; z-index: 4; box-shadow: 0 3px 12px #7d5a3620; padding: 11px 12px; margin-top: 10px; border: 1px solid #e8c5ad; border-radius: 6px; color: #8c4f2b; background: #fff7ef; font-size: 12px; line-height: 1.6; }
+.theory-fit-status:empty, .theory-fit-error:empty { display: none; }
+.theory-fit-body { min-width: 0; margin: 14px 0 0; padding: 0; border: 0; }
+.theory-fit-body:disabled { opacity: .62; }
+.theory-fit-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.theory-fit-actions .button { font-size: 12px; min-height: 38px; white-space: normal; line-height: 1.4; }
+.theory-fit-step { margin-top: 21px; padding-top: 18px; border-top: 1px solid #e1e8ef; }
+.theory-step-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.theory-step-heading > span { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: #eaf2fb; color: #3d72a5; font-size: 12px; font-weight: 650; }
+.theory-step-heading h4 { margin: 0; color: #3e566e; font-size: 13px; font-weight: 650; }
+.theory-fit-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; margin-top: 14px; }
+.theory-fit-fields label, .theory-fit-step > label { display: flex; flex-direction: column; align-items: stretch; gap: 7px; color: #5b7188; font-size: 12px; margin-top: 0; }
+.theory-fit-step > label { margin-top: 14px; }
+.theory-fit-fields > label.checkbox-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 11px; border: 1px solid #e0e7ef; border-radius: 5px; background: #f7fafd; }
+.theory-fit-fields > label.checkbox-row input { width: 16px; height: 16px; min-height: 16px; flex-shrink: 0; margin: 0; }
+.theory-fit-fields > label.checkbox-row:has(input:checked) { border-color: #bfd5e8; background: #edf5fc; color: #356c9e; }
+.theory-fit-fields .theory-fit-wide { grid-column: 1 / -1; }
+.theory-fit-fields input:not([type="checkbox"]), .theory-fit-fields select, .theory-fit-step > label input, .theory-fit-step > label select { width: 100%; min-width: 0; min-height: 38px; font-size: 12px; }
+.theory-fit-fields input[readonly] { color: #70879d; background: #f1f5f8; border-color: #dce5ed; border-style: dashed; }
+.theory-fit-fields .input-unit > span, .theory-fit-shape .input-unit > span { font-size: 12px; }
+.theory-fit-fields .input-unit > input { padding-right: 38px !important; }
+#tf-noise-window { padding-right: 65px !important; }
+.theory-fit-formula { margin-top: 10px; padding: 9px 10px; border-radius: 5px; color: #70849a; background: #f7f9fc; font-size: 12px; line-height: 1.6; }
+.theory-fit-shape + .section-description, #tf-noise-hint { margin-top: 8px; }
+.theory-fit-results { margin-top: 20px; }
+.theory-fit-table-scroll { overflow-x: auto; border: 1px solid #dfe7ef; border-radius: 6px; }
+.theory-fit-comparison { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.theory-fit-comparison th, .theory-fit-comparison td { padding: 9px 6px; border-bottom: 1px solid #e7edf3; vertical-align: top; overflow-wrap: anywhere; }
+.theory-fit-comparison thead th { color: #7890a6; background: #f7fafd; font-weight: 600; }
+.theory-fit-comparison th:first-child, .theory-fit-comparison td:first-child { width: 31%; text-align: left; color: #62798f; }
+.theory-fit-comparison thead th:nth-child(3) { color: #a38143; }
+.theory-fit-comparison th:last-child, .theory-fit-comparison td:last-child { color: #306b9f; background: #f3f8fd; }
+.theory-fit-comparison th small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: #8a9bac; }
+.theory-fit-comparison tbody tr:last-child > * { border-bottom: 0; }
+.theory-fit-results > .section-description { margin-top: 10px; }
+@media (max-width: 760px) {
+  .theory-fit-actions .button { min-height: 40px; }
+  .theory-fit-fields { gap: 14px; }
+  .theory-fit-comparison th, .theory-fit-comparison td { padding: 10px 8px; }
+}

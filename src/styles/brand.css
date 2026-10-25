@@ -1,0 +1,17 @@
+/* A thrust-vector T, nozzle, and rising trajectory form the independent studio mark. */
+.brand { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; line-height: 1.1; gap: 11px; color: #183b50; letter-spacing: 0; }
+.brand-symbol { width: 42px; height: 42px; flex-shrink: 0; overflow: visible; }
+.brand-vector-t, .brand-nozzle { fill: #183b50; }
+.brand-plume { fill: #198e8c; }
+.brand-trajectory { fill: none; stroke: #198e8c; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.brand-wordmark { display: flex; flex-direction: column; gap: 5px; }
+.brand-name { display: flex; align-items: baseline; gap: 5px; color: #183b50; font-size: 21px; line-height: 1; font-weight: 720; letter-spacing: -.75px; }
+.brand-name > span { color: #198e8c; font-weight: 620; }
+.brand-studio { color: #7890a1; font-size: 9px; line-height: 1; font-weight: 650; letter-spacing: 4.2px; }
+@media (max-width: 760px) {
+  .brand { gap: 8px; }
+  .brand-symbol { width: 34px; height: 34px; }
+  .brand-name { font-size: 18px; gap: 4px; letter-spacing: -.55px; }
+  .brand-wordmark { gap: 4px; }
+  .brand-studio { font-size: 8px; letter-spacing: 3.5px; }
+}

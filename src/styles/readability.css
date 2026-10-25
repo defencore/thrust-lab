@@ -1,0 +1,104 @@
+/* Legible controls and flexible cards keep every editing task usable at smaller widths. */
+.studio { grid-template-columns: 210px minmax(360px, 1fr) 340px; gap: 16px; }
+.app-header { height: auto; min-height: 65px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+.header-actions { flex-wrap: wrap; }
+.button, .button.small { min-height: 36px; font-size: 12px; }
+.icon-button { width: 34px; height: 34px; }
+input:not([type="checkbox"]):not([type="range"]), select { min-height: 36px; font-size: 12px; }
+label, .section-description, .modal-note, .inspector-content .section-description { font-size: 12px; line-height: 1.6; }
+input[readonly] { color: #71849a; }
+.metrics-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.metric { min-height: 116px; padding: 15px 14px 12px; }
+.metric > span { font-size: 12px; letter-spacing: .25px; white-space: normal; }
+.metric p { font-size: 12px; line-height: 1.5; white-space: normal; }
+.metric small { font-size: 12px; }
+.metric > span, .metric p { color: #607080; }
+.section-description, .inspector-content .section-description { color: #627386; }
+.chart-heading { gap: 15px; }
+.chart-heading h1 { font-size: 16px; overflow-wrap: anywhere; }
+.chart-legend { font-size: 12px; }
+.inspector-content > section { padding: 20px 17px; }
+.inspector-content section > label:not(.range-label) { font-size: 12px; }
+.inspector-content section > label > .input-unit { width: 125px; }
+.inspector-content section > label > select { width: 145px; font-size: 12px; }
+.inspector-content section > label.shift-fill-field { flex-direction: column; align-items: stretch; gap: 7px; }
+.inspector-content section > label.shift-fill-field > select { width: 100%; }
+.inspector-content section > label > #edit-anchor { width: 180px; }
+.inspector-content section > label > input:not([type="range"]) { width: 125px; }
+.inspector-content input, .inspector-content select { font-size: 12px; }
+.inspector-content h3 { font-size: 14px; }
+.inspector-tabs { padding: 0 12px; }
+.inspector-tabs button { min-height: 42px; font-size: 12px; }
+.scope-switch button { min-height: 34px; font-size: 12px; }
+.selection-fields label { font-size: 12px; letter-spacing: 0; }
+.selection-fields input { font-size: 12px; }
+.inspector-content section > label.live-effect-toggle { font-size: 12px; }
+.sampled-noise-section > label, .sampled-noise-section > label > select { font-size: 12px !important; }
+.noise-source-card strong, .noise-source-card p, .sampled-noise-section h4 { font-size: 12px; }
+.noise-source-card { padding: 13px 11px; }
+.curve-node-row, .curve-node-row strong, .curve-node-row > span:first-child { font-size: 12px; }
+.curve-node-row { min-height: 42px; grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 13px; }
+.curve-point-status, #curve-edit-controls > label:not(.checkbox-row), .curve-point-actions .button { font-size: 12px; }
+#curve-edit-controls > label > .input-unit { width: 125px; }
+#curve-edit-controls > label > select { width: 150px; }
+.curve-node-list { max-height: 270px; }
+.chart-toolbar .tool-group .icon-button, .mobile-history .icon-button { width: 34px; height: 34px; }
+.chart-toolbar #clear-selection { min-height: 34px; font-size: 12px; }
+.chart-toolbar #clear-selection kbd { font-size: 12px; }
+.axis-zoom-group .icon-button { width: 32px; height: 32px; }
+.axis-zoom-label, .thrust-scale-status, .axis-zoom-controls .fit-all-axes, .axis-zoom-help { font-size: 12px; }
+.axis-zoom-controls .fit-all-axes { min-height: 32px; }
+.measurement-heading h2, .measurement-heading .button, .measurement-time, .measurement-force, .measurement-force output, .measurement-empty, .measurement-note { font-size: 12px; }
+.measurement-time .input-unit input { font-size: 12px; }
+.measurement-grid { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
+.measurement-heading .button { min-height: 32px; }
+.generator-grid { gap: 15px; }
+.generator-grid label, .generator-grid input, .generator-grid select { font-size: 12px; }
+.sampling-strip { flex-wrap: wrap; gap: 12px; }
+.compact-field, .compact-field input, .sampling-strip select { font-size: 12px; }
+.compact-field .input-unit { width: 90px; }
+.seed-field input { width: 110px; }
+.preset-card { min-height: 68px; }
+.preset-info strong { flex-wrap: wrap; }
+.preset-info > span { white-space: normal; }
+.timeline-footer { flex-wrap: wrap; gap: 6px; }
+.timeline-footer input#cursor-time { width: 95px; font-size: 12px; }
+.status-bar { flex-wrap: wrap; gap: 9px 16px; font-size: 12px; }
+.bottom-tabs > button { min-height: 42px; font-size: 12px; }
+.data-table { font-size: 12px; }
+.data-table th, .data-table input { font-size: 12px; }
+.modal label, .modal label input, .modal select, .modal-description, .modal-note { font-size: 12px; }
+@media (min-width: 761px) {
+  .focus-mode .studio { grid-template-columns: minmax(0, 1fr) 340px; }
+}
+@media (min-width: 1600px) {
+  .studio { grid-template-columns: 230px minmax(500px, 1fr) 350px; gap: 20px; }
+  .focus-mode .studio { grid-template-columns: minmax(0, 1fr) 350px; }
+}
+@media (max-width: 1250px) {
+  .studio { grid-template-columns: 170px minmax(340px, 1fr) 330px; gap: 12px; }
+  .metric { padding: 14px 12px; }
+}
+@media (min-width: 761px) and (max-width: 1250px) {
+  .focus-mode .studio { grid-template-columns: minmax(0, 1fr) 330px; }
+}
+@media (max-width: 1050px) {
+  .studio { grid-template-columns: minmax(340px, 1fr) 330px; }
+  .preset-card { min-width: 165px; width: 165px; }
+}
+@media (max-width: 760px) {
+  .studio { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .app-header { min-height: 58px; padding-top: 8px; padding-bottom: 8px; }
+  .header-actions { gap: 6px; }
+  .header-actions .button { min-height: 34px; }
+  .metric strong { font-size: 25px; }
+  .metric { min-height: 112px; }
+  .measurement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .measurement-heading { flex-wrap: wrap; }
+  .measurement-time { flex-direction: column; align-items: stretch; }
+  .measurement-time .input-unit { width: 100%; }
+  .measurement-endpoint { padding: 8px; }
+  .inspector-content > section { padding: 22px 18px; }
+  .axis-zoom-controls { gap: 7px 10px; }
+  .thrust-scale-status { max-width: 125px; }
+}

@@ -1,0 +1,48 @@
+/* Ruler markers inspect the current curve independently of editing tools. */
+.chart-toolbar { flex-wrap: wrap; gap: 7px; }
+.chart-toolbar .tool-group { flex-shrink: 0; }
+.chart-toolbar .tool-caption { flex: 1 1 120px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.chart-toolbar #clear-selection { display: inline-flex; gap: 5px; min-height: 28px; padding: 4px 7px; font-size: 12px; color: #547393; border-color: #d5e1ec; background: #f7fafd; }
+.chart-toolbar #clear-selection:not(:disabled):hover { color: #285e99; border-color: #9dbbd6; background: #edf4fb; }
+.chart-toolbar #clear-selection:disabled { background: #fafbfc; border-color: #e3e9ef; opacity: .45; }
+.chart-toolbar #clear-selection .icon { width: 12px; height: 12px; }
+.chart-toolbar #clear-selection kbd { font-size: 12px; padding: 0 3px; }
+.profile-chart[data-tool="measure"] { cursor: crosshair; }
+.measurement-panel { padding: 11px 18px 9px; border-top: 1px solid #e0e8ef; border-bottom: 1px solid #e0e8ef; background: #f8fafc; }
+.measurement-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.measurement-heading h2 { display: flex; align-items: center; gap: 6px; color: #61788e; font-size: 12px; }
+.measurement-heading h2 .icon { width: 13px; height: 13px; }
+.measurement-heading .button { min-height: 24px; padding: 2px 4px; font-size: 12px; color: #8597a9; }
+.measurement-heading .button .icon { width: 11px; height: 11px; }
+.measurement-empty { font-size: 12px; color: #6f879b; line-height: 1.6; margin-bottom: 8px; }
+.measurement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 7px; }
+.measure-a { --measure-color: #168b88; color: #168b88; }
+.measure-b { --measure-color: #8766b3; color: #8766b3; }
+.measurement-endpoint { display: grid; grid-template-columns: 19px minmax(0, 1fr); align-items: center; gap: 3px 6px; padding: 6px 7px; background: #fff; border: 1px solid #e0e7ed; border-left: 2px solid var(--measure-color); border-radius: 4px; }
+.measurement-badge { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 4px; background: var(--measure-color); color: #fff; font-size: 12px; font-weight: 600; }
+.measurement-time { display: flex; flex-direction: row; align-items: center; gap: 5px; color: #7a8da0; font-size: 12px; }
+.measurement-time .input-unit { min-width: 0; }
+.measurement-time .input-unit input { height: 25px; padding: 3px 5px; padding-right: 23px !important; font-size: 12px; }
+.measurement-time .input-unit > span { right: 6px; font-size: 12px; }
+.measurement-time input:disabled { background: #f6f8fb; color: #a4b0bd; }
+.measurement-force { grid-column: 2; display: flex; justify-content: space-between; align-items: baseline; gap: 5px; font-size: 12px; color: #8798aa; }
+.measurement-force output { color: var(--measure-color); font-size: 12px; font-weight: 550; font-variant-numeric: tabular-nums; }
+.measurement-delta { display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 6px 9px; border: 1px solid #e3e9ef; border-radius: 4px; background: #f1f5f9; color: #7c8fa3; font-size: 12px; }
+.measurement-delta output { color: #486784; font-size: 12px; font-weight: 550; font-variant-numeric: tabular-nums; }
+.measurement-note { font-size: 12px; line-height: 1.6; color: #879aae; margin-top: 6px; }
+.measurement-marker { vector-effect: non-scaling-stroke; transition: r .12s ease, filter .12s ease; }
+.measurement-marker:hover { r: 8px; filter: drop-shadow(0 1px 3px #405b7a44); }
+.measurement-brackets { opacity: .85; }
+@media (max-width: 760px) {
+  .chart-toolbar { gap: 5px; }
+  .chart-toolbar .tool-group { gap: 1px; }
+  .chart-toolbar .tool-group .icon-button { width: 27px; }
+  .chart-toolbar #clear-selection { margin-left: auto; font-size: 12px; }
+  .measurement-panel { padding: 10px 12px 8px; }
+  .measurement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .measurement-heading h2 { font-size: 12px; }
+  .measurement-heading .button { font-size: 12px; }
+  .measurement-time { font-size: 12px; }
+  .measurement-force { font-size: 12px; }
+  .measurement-note { font-size: 12px; }
+}
