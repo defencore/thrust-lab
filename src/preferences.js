@@ -41,7 +41,7 @@ const controlOptions = {
   'export-time': ['s', 'ms', 'us'],
   'export-thrust': ['N', 'kN', 'kgf', 'lbf'],
   'export-delimiter': [',', ';', 'tab'],
-  'export-precision': ['3', '6', '9'],
+  'export-precision': Array.from({ length: 16 }, (_, digits) => String(digits)),
 };
 const displayUnitOptions = {
   thrust: ['N', 'kN', 'kgf', 'lbf'],

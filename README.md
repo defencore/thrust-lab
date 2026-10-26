@@ -205,6 +205,14 @@ The importer recognizes the complete `thrust-lab-v1` pattern and removes its ten
 
 Use the top **Analyzer** tab to inspect a CSV or project JSON without changing the editor or generator. CSV column mapping, headers, and units can be corrected directly in the analyzer. Results distinguish a recognized marker, no recognized marker, and an invalid file. The check identifies the Thrust Lab synthetic marker; it is not a cryptographic origin or integrity check, and absence of the marker does not establish that data was measured. All inspection stays in the browser.
 
+## Preserve an imported CSV format
+
+Working CSV imports retain the original time and thrust tokens, units, column labels, delimiter, header presence, decimal separator, and decimal count for each row. Imported timestamps are copied verbatim on export: `4084` remains `4084`, rather than being converted back from a floating-point seconds value. Edited thrust uses the original row's number format; for example, an edited `943.062` is saved as `943.1` when the source uses one decimal. Unchanged values retain trailing zeroes and their original spelling.
+
+The export dialog shows **Original CSV format** for an imported profile. Cached custom export settings cannot override this format. Source formatting stays with the profile through edits, undo, autosave, and native project files; creating a new generated profile clears the previous recording's format. Custom exports for generated profiles allow 0–15 thrust decimals. The ten synthetic service records retain their tiny full-precision values independently of the profile's decimal count.
+
+To combine two files, import the CSV containing the desired thrust measurements, then choose **Combine CSV files** in the project toolbar or **Use timings from another CSV** in Export. Select the original timing CSV and confirm its columns and units. The studio pairs its timestamps with the current thrust values by row index, without interpolation. Both files must contain the same number of profile measurements after recognized marker records are removed; mismatched counts leave the current profile unchanged. The timing source also supplies the original CSV number format, so this workflow can repair an older edited export while retaining its thrust values. The operation is undoable; old selections and control points are cleared because their timeline has been replaced explicitly.
+
 ## Data formats
 
 ```csv

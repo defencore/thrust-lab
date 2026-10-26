@@ -100,6 +100,7 @@ export function createStudio() {
       $('#mode-edit').setAttribute('aria-selected', String(mode === 'edit')); $('#mode-create').setAttribute('aria-selected', String(mode === 'create'));
       $('#workspace-caption').textContent = mode === 'edit' ? 'Editing workspace' : 'Generator preview';
       $('#focus-editor').hidden = mode === 'create';
+      $('#combine-timings').hidden = mode !== 'edit';
       const focus = mode === 'edit' && preferences.get().focus;
       document.body.classList.toggle('focus-mode', focus); $('#focus-editor').setAttribute('aria-pressed', String(focus)); $('#focus-editor').classList.toggle('active', focus);
       $('.chart-toolbar .tool-group').hidden = false;

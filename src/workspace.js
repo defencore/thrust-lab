@@ -1,5 +1,6 @@
 import { generateProfile } from './profile.js';
 import { MOTOR_PRESETS } from './catalog.js';
+import { normalizeCSVFormat } from './csv-format.js';
 
 function copy(value) {
   return structuredClone(value);
@@ -15,6 +16,19 @@ function copyPoints(points, label) {
     previous = point.time;
     return { time: point.time, thrust: point.thrust };
   });
+}
+
+/** Pair an original CSV timeline with current measurements by row, without resampling. */
+export function combineProfileTimings(editor, source) {
+  const measured = copyPoints(editor.points, 'Working profile');
+  const timing = copyPoints(source.points, 'Timestamp source');
+  if (measured.length !== timing.length) throw new Error('The time source must contain the same number of measurements as the current profile.');
+  const csvFormat = normalizeCSVFormat(source.csvFormat, timing);
+  const points = measured.map((point, index) => ({ time: timing[index].time, thrust: point.thrust }));
+  const original = editor.original?.length === points.length
+    ? editor.original.map((point, index) => ({ time: timing[index].time, thrust: point.thrust }))
+    : copy(editor.original ?? points);
+  return { ...editor, points, original, csvFormat, selection: null, scope: 'all', curveEdit: null };
 }
 
 /** A generator preview owns its data and cannot replace the working profile. */
@@ -56,7 +70,7 @@ export function applyDraftToEditor(editor, draft) {
   const points = copyPoints(draft.points, 'Generated preview');
   const start = points[0].time;
   const end = points.at(-1).time;
-  return {
+  const result = {
     ...editor,
     name: String(draft.name || 'Custom burn profile'),
     points,
@@ -74,4 +88,6 @@ export function applyDraftToEditor(editor, draft) {
     generator: copy(draft.generator || {}),
     generatorPending: false,
   };
+  delete result.csvFormat;
+  return result;
 }

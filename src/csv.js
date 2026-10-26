@@ -1,10 +1,8 @@
 import { createSyntheticMarker, inspectSyntheticMarker, SYNTHETIC_MARKER_COUNT } from './synthetic-marker.js';
+import { CSV_TIME_FACTORS as TIME_FACTORS, CSV_THRUST_FACTORS as THRUST_FACTORS, csvNumber, normalizeCSVFormat, exportSourceCSV } from './csv-format.js';
 
 const MAX_POINTS = 30_000;
 const MAX_FILE_SIZE = 20_000_000;
-const TIME_FACTORS = { s: 1, ms: 0.001, us: 0.000001 };
-const THRUST_FACTORS = { N: 1, kN: 1000, kgf: 9.80665, lbf: 4.4482216152605 };
-const NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
 
 function cleanText(text) {
   if (typeof text !== 'string') throw new Error('CSV content must be text.');
@@ -80,13 +78,6 @@ function readRows(text, delimiter) {
   return rows;
 }
 
-function numberValue(value, delimiter) {
-  if (typeof value !== 'string') return NaN;
-  let normalized = value.trim();
-  if (delimiter !== ',' && normalized.includes(',') && !normalized.includes('.')) normalized = normalized.replace(',', '.');
-  return NUMBER.test(normalized) ? Number(normalized) : NaN;
-}
-
 function inspect(text, forcedDelimiter, headerOption) {
   const content = cleanText(text);
   const delimiter = forcedDelimiter ?? detectDelimiter(content);
@@ -95,7 +86,7 @@ function inspect(text, forcedDelimiter, headerOption) {
   if (rows[0].length < 2) throw new Error('The CSV needs at least two columns: time and thrust.');
   if (headerOption !== undefined && typeof headerOption !== 'boolean') throw new Error('Header presence must be true or false.');
   // A numeric field identifies a measurement row even when other columns contain labels.
-  const hasHeader = headerOption ?? (rows[0].some(value => value !== '') && rows[0].every(value => !Number.isFinite(numberValue(value, delimiter))));
+  const hasHeader = headerOption ?? (rows[0].some(value => value !== '') && rows[0].every(value => !Number.isFinite(csvNumber(value))));
   const headers = hasHeader ? rows[0] : rows[0].map((_, index) => `Column ${index + 1}`);
   return { headers, rows: hasHeader ? rows.slice(1) : rows, delimiter, hasHeader };
 }
@@ -175,22 +166,25 @@ export function parseCSV(text, options = {}) {
   if (!(thrustUnit in THRUST_FACTORS)) throw new Error('Unsupported thrust unit. Use N, kN, kgf, or lbf.');
   const points = rows.map((row, index) => {
     const rowNumber = index + (hasHeader ? 2 : 1);
-    const timeValue = numberValue(row[time.index], delimiter);
-    const thrustValue = numberValue(row[thrust.index], delimiter);
+    const timeValue = csvNumber(row[time.index]);
+    const thrustValue = csvNumber(row[thrust.index]);
     if (!Number.isFinite(timeValue) || !Number.isFinite(thrustValue)) throw new Error(`CSV row ${rowNumber} has a missing or invalid time or thrust value.`);
     return { time: timeValue * TIME_FACTORS[timeUnit], thrust: thrustValue * THRUST_FACTORS[thrustUnit] };
   });
   const syntheticMarker = inspectSyntheticMarker(points);
   if (syntheticMarker.detected) warnings.push('Synthetic marker detected; 10 marker records were excluded from the profile.');
-  return { points: validatePoints(syntheticMarker.profilePoints), headers, timeColumn: time.index, thrustColumn: thrust.index, warnings, syntheticMarker };
+  const profile = validatePoints(syntheticMarker.profilePoints);
+  const csvFormat = normalizeCSVFormat({ version: 1, delimiter, hasHeader, timeUnit, thrustUnit, timeHeader: headers[time.index], thrustHeader: headers[thrust.index], rows: rows.slice(syntheticMarker.markerCount).map(row => [row[time.index], row[thrust.index]]) }, profile);
+  return { points: profile, headers, timeColumn: time.index, thrustColumn: thrust.index, warnings, syntheticMarker, csvFormat };
 }
 
-export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true } = {}) {
+export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true, csvFormat = null } = {}) {
   const validated = validatePoints(points);
+  if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
+  if (csvFormat != null) return exportSourceCSV(validated, csvFormat, syntheticMarker ? createSyntheticMarker(validated) : []);
   if (!(timeUnit in TIME_FACTORS) || !(thrustUnit in THRUST_FACTORS)) throw new Error('Unsupported export unit.');
   if (![',', ';', '\t'].includes(delimiter)) throw new Error('Unsupported export delimiter.');
   if (!Number.isInteger(precision) || precision < 0 || precision > 15) throw new Error('Export precision must be an integer from 0 to 15.');
-  if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
   // Marker precision is independent of the selected rounding for actual thrust values.
   const markerPoints = syntheticMarker ? createSyntheticMarker(validated) : [];
   let previousTime = -Infinity;
@@ -274,12 +268,13 @@ export function parseProject(text) {
   const result = { version: 1, name, points, theory: project.theory == null ? null : validatePoints(project.theory, 'Theory'), selection, scope, showTheory, showOriginal, generatorPending, theoryAlignment, curveEdit };
   if (project.original != null) result.original = validatePoints(project.original, 'Original profile');
   if (project.generator != null) result.generator = validateGenerator(project.generator);
+  if (project.csvFormat != null) result.csvFormat = normalizeCSVFormat(project.csvFormat, points);
   return result;
 }
 
 export function serializeProject(state, { syntheticMarker = false } = {}) {
   if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
-  const project = { version: 1, name: state.name, points: state.points, theory: state.theory, selection: state.selection, scope: state.scope, showTheory: state.showTheory, showOriginal: state.showOriginal, original: state.original, generator: state.generator, generatorPending: state.generatorPending, theoryAlignment: state.theoryAlignment, curveEdit: state.curveEdit };
+  const project = { version: 1, name: state.name, points: state.points, theory: state.theory, selection: state.selection, scope: state.scope, showTheory: state.showTheory, showOriginal: state.showOriginal, original: state.original, generator: state.generator, generatorPending: state.generatorPending, theoryAlignment: state.theoryAlignment, curveEdit: state.curveEdit, csvFormat: state.csvFormat };
   const canonical = parseProject(JSON.stringify(project));
   if (syntheticMarker) canonical.points = [...createSyntheticMarker(canonical.points), ...canonical.points];
   return JSON.stringify(canonical, null, 2) + '\n';

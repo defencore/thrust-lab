@@ -68,6 +68,7 @@ test('preset template selection keeps SI options unchanged and does not expose c
 
 test('adopting a preview resets edit scope while preserving unrelated editor controls', () => {
   const editor = imported();
+  editor.csvFormat = { version: 1, source: 'Original CSV format belongs to the old recording' };
   const draft = createGeneratorDraft(settings);
   const beforeEditor = structuredClone(editor);
   const beforeDraft = structuredClone(draft);
@@ -83,6 +84,7 @@ test('adopting a preview resets edit scope while preserving unrelated editor con
   assert.equal(adopted.scope, 'all');
   assert.equal(adopted.tool, 'select');
   assert.equal(adopted.generatorPending, false);
+  assert.equal(Object.hasOwn(adopted, 'csvFormat'), false);
   assert.deepEqual(adopted.theoryAlignment, { mode: 'source', offset: 0 });
   assert.notEqual(adopted.theoryAlignment, draft.theoryAlignment);
   assert.deepEqual(adopted.view, [0, 2]);

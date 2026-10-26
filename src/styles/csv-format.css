@@ -1,0 +1,16 @@
+/* Imported numeric formatting belongs to the profile, independently of custom export settings. */
+.project-tools { flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 760px) {
+  .project-bar { flex-wrap: wrap; }
+  .project-title { flex: 1 1 100%; }
+  .project-tools { width: 100%; margin-top: 7px; }
+}
+.export-read-source { margin-top: 16px; }
+.export-read-source .modal-note { margin-top: 8px; }
+.export-source-format { margin-top: 20px; padding: 16px; border: 1px solid #d8e5e7; border-radius: 6px; background: #f3f8f8; }
+.export-source-format h3 { font-size: 13px; color: #3d6971; }
+.export-source-format p { margin-top: 9px; color: #667f8a; font-size: 12px; line-height: 1.7; }
+.export-source-format dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin: 15px 0 0; }
+.export-source-format dt { color: #7b909b; font-size: 12px; }
+.export-source-format dd { margin: 6px 0 0; color: #3a596a; font: 13px/1.6 "SFMono-Regular", Consolas, monospace; overflow-wrap: anywhere; }
+.export-source-format .export-format-persistence { margin-top: 15px; font-size: 12px; }

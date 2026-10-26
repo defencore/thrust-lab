@@ -2,6 +2,37 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dictionary, translate, getLanguage, setLanguage, t } from '../src/i18n.js';
 
+test('imported CSV numeric formatting and every custom decimal count remain bilingual', () => {
+  for (const [english, ukrainian] of [
+    ['Only timestamps and CSV number formatting are taken from this file. Current thrust measurements are kept.', 'Із цього файлу беруться лише часові мітки й числовий формат CSV. Поточні вимірювання тяги зберігаються.'],
+    ['Use timings from another CSV', 'Взяти часові мітки з іншого CSV'],
+    ['Pair the CSV timestamps with current thrust measurements in row order.', 'Поєднайте часові мітки CSV з поточними вимірюваннями тяги в порядку рядків.'],
+    ['Import timestamp source', 'Імпортувати джерело часових міток'],
+    ['Use these timestamps', 'Використати ці часові мітки'],
+    ['Timings and original CSV format restored', 'Часові мітки й оригінальний формат CSV відновлено'],
+    ['The time source must contain the same number of measurements as the current profile.', 'Джерело часу має містити таку саму кількість вимірювань, як і поточний профіль.'],
+    ['Combine CSV files', 'Поєднати CSV-файли'],
+    ['Keep current thrust and take timestamps from another CSV.', 'Збережіть поточну тягу та візьміть часові мітки з іншого CSV.'],
+    ['CSV source format is invalid.', 'Оригінальний формат CSV некоректний.'],
+    ['CSV source format must match the measurement timestamp sequence.', 'Оригінальний формат CSV має відповідати послідовності часових міток вимірювань.'],
+    ['CSV source format contains an invalid numeric record.', 'Оригінальний формат CSV містить некоректний числовий запис.'],
+    ['Cannot format a nonfinite CSV value.', 'Неможливо відформатувати нескінченне або невизначене значення CSV.'],
+    ['Original CSV format', 'Оригінальний формат CSV'],
+    ['Time values are copied exactly from the imported file. Thrust keeps the original decimal format.', 'Значення часу копіюються дослівно з імпортованого файлу. Тяга зберігає оригінальний десятковий формат.'],
+    ['Time format', 'Формат часу'],
+    ['Thrust format', 'Формат тяги'],
+    ['Imported formatting is retained in saved projects.', 'Формат імпортованих даних зберігається у файлах проєкту.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+  for (let digits = 0; digits <= 15; digits++) {
+    const english = `${digits} decimal ${digits === 1 ? 'place' : 'places'}`;
+    assert.notEqual(translate(english, 'uk'), english);
+    assert.equal(translate(translate(english, 'uk'), 'en'), english);
+  }
+});
+
 test('synthetic export markers and analyzer navigation remain bilingual and reversible', () => {
   for (const [english, ukrainian] of [
     ['Analyzer', 'Аналізатор'],

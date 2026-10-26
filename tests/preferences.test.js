@@ -43,6 +43,18 @@ test('settings reset removes only the preferences key and preserves project and 
   assert.equal(storage.getItem('unrelated'), 'retained');
 });
 
+test('custom exports retain one or two decimal places and validate the complete precision range', () => {
+  const storage = memoryStorage();
+  const preferences = createPreferences(storage);
+  preferences.update({ controls: { 'export-precision': '1' } });
+  assert.equal(createPreferences(storage).get().controls['export-precision'], '1');
+  preferences.update({ controls: { 'export-precision': '2' } });
+  assert.equal(createPreferences(storage).get().controls['export-precision'], '2');
+  for (let digits = 0; digits <= 15; digits++) assert.equal(preferences.update({ controls: { 'export-precision': digits } }).controls['export-precision'], String(digits));
+  for (const value of ['', -1, 16, 1.5, Infinity, 'one']) assert.equal(preferences.update({ controls: { 'export-precision': value } }).controls['export-precision'], '15');
+  assert.equal(preferences.reset().controls['export-precision'], PREFERENCE_DEFAULTS.controls['export-precision']);
+});
+
 test('display units persist independently while cached control and generator values stay in SI', () => {
   const storage = memoryStorage();
   const preferences = createPreferences(storage);
