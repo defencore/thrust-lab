@@ -3,7 +3,8 @@
 .tool-group { display: flex; gap: 2px; }
 .toolbar-separator { width: 1px; height: 18px; background: var(--line); }
 .tool-caption { color: #97a1ad; font-size: 12px; }
-.chart-heading { display: flex; align-items: center; justify-content: space-between; padding: 21px 23px 7px; gap: 10px; }
+.chart-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 21px 23px 7px; gap: 10px; }
+.chart-heading > div:first-child { min-width: 0; flex: 1; }
 .chart-heading .eyebrow { font-size: 7px; margin-bottom: 5px; }
 .chart-heading h1 { font-size: 13px; }
 .chart-legend { display: flex; align-items: center; gap: 14px; font-size: 12px; color: #8793a1; white-space: nowrap; }
@@ -55,3 +56,12 @@
 .timeline-footer input#cursor-time { width: 64px; background: transparent; border-color: transparent; height: 24px; padding: 2px 4px; font-size: 12px; color: #687c92; }
 .timeline-footer input#cursor-time::-webkit-inner-spin-button { display: none; }
 .cursor-value { border-left: 1px solid #dce3eb; padding-left: 9px; margin-left: 4px; min-width: 64px; color: #7b90a6; }
+@container work-area (max-width: 660px) {
+  .chart-toolbar .tool-caption, .chart-toolbar .toolbar-separator { display: none; }
+}
+@container work-area (max-width: 420px) {
+  .timeline-footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .timeline-footer > span:first-child { grid-column: 1; grid-row: 1; }
+  .timeline-footer > span:last-child { grid-column: 2; grid-row: 1; text-align: right; }
+  .timeline-footer label { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+}

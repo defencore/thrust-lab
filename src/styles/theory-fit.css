@@ -29,7 +29,8 @@
 .theory-step-heading > span { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: #eaf2fb; color: #3d72a5; font-size: 12px; font-weight: 650; }
 .theory-step-heading h4 { margin: 0; color: #3e566e; font-size: 13px; font-weight: 650; }
 .theory-fit-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; margin-top: 14px; }
-.theory-fit-fields label, .theory-fit-step > label { display: flex; flex-direction: column; align-items: stretch; gap: 7px; color: #5b7188; font-size: 12px; margin-top: 0; }
+.theory-fit-fields label, .theory-fit-step > label { display: flex; flex-direction: column; align-items: stretch; min-width: 0; gap: 7px; color: #5b7188; font-size: 12px; margin-top: 0; }
+.theory-fit-fields .input-unit, .theory-fit-step > label > .input-unit { width: 100%; min-width: 0; }
 .theory-fit-step > label { margin-top: 14px; }
 .theory-fit-fields > label.checkbox-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 11px; border: 1px solid #e0e7ef; border-radius: 5px; background: #f7fafd; }
 .theory-fit-fields > label.checkbox-row input { width: 16px; height: 16px; min-height: 16px; flex-shrink: 0; margin: 0; }

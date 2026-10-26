@@ -15,8 +15,7 @@ function displayUnitControls(unitOptions) {
 export function buildLayout({ name, presetCount, defaultPreset, catalogNotice, catalogSources, unitOptions }) {
   $('#app').innerHTML = `
   <header class="app-header">
-    ${brandMarkup()}
-    <span class="header-divider"></span><span class="workspace-caption">Burn profile workspace</span><span class="live-status" id="save-status" role="status">Changes saved automatically · Undo available</span>
+    <div class="header-identity">${brandMarkup()}<div class="header-context"><span class="workspace-caption">Burn profile workspace</span><span class="live-status" id="save-status" role="status">Changes saved automatically · Undo available</span></div></div>
     <div class="header-actions"><label class="language-picker"><span class="sr-only">Interface language</span><select id="language-select" aria-label="Interface language"><option value="en">EN</option><option value="uk">UA</option></select></label><span class="local-badge"><span></span> Browser local</span>
       <div class="history-controls">${iconButton('undo', 'undo', 'Undo (Ctrl/⌘ Z)')}${iconButton('redo', 'redo', 'Redo (Ctrl/⌘ Shift Z)')}</div>
       <button class="button quiet guide-button" id="guide">${icon('help')}<span>Quick guide</span></button>
