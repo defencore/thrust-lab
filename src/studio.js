@@ -16,6 +16,7 @@ import { createSamplesController } from './controllers/samples-controller.js';
 import { createFilesController } from './controllers/files-controller.js';
 import { createTheoryController } from './controllers/theory-controller.js';
 import { createTheoryFitController } from './controllers/theory-fit-controller.js';
+import { createProfileRetimeController } from './controllers/profile-retime-controller.js';
 import { createSettingsController } from './controllers/settings-controller.js';
 import { createChartController } from './controllers/chart-controller.js';
 import { createMeasurementController } from './controllers/measurement-controller.js';
@@ -47,6 +48,7 @@ export function createStudio() {
     getRange() { const p = store.get(); return p.scope === 'selection' ? p.selection : null; },
     activeProfile() { return { ...(ui.mode === 'create' && ctx.generator?.getDraft() || store.get()), view: ui.view, playhead: ui.playhead, tool: ui.mode === 'create' && ui.tool !== 'measure' ? 'pan' : ui.tool }; },
     beforeEdit(id) {
+      if (id !== 'profile-retime') ctx.retime?.deactivate();
       if (id !== 'theory-fit') ctx.fit?.deactivate();
       if (id !== 'shift') ctx.shift?.deactivate();
       if (['adopt', 'open', 'import', 'mode'].includes(id)) ctx.measurement?.clear();
@@ -60,8 +62,8 @@ export function createStudio() {
       try { ctx.beforeEdit(label); store.edit(label, mutate, options); }
       catch (error) { ctx.error(error); }
     },
-    undo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.undo(); ctx.render(); },
-    redo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.redo(); ctx.render(); },
+    undo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.retime.deactivate(); ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.undo(); ctx.render(); },
+    redo() { if (ui.screen === 'analyzer' || ui.mode !== 'edit') return; ctx.retime.deactivate(); ctx.fit.deactivate(); ctx.signal.reset(); const canceled = ctx.chart.cancelDrag(); ctx.shift.deactivate(); if (!canceled) store.redo(); ctx.render(); },
     clearSelection() { clearChartSelection(ctx); },
     fitView() {
       ctx.chart?.cancelDrag();
@@ -117,6 +119,7 @@ export function createStudio() {
   ctx.curve = createCurveController(ctx);
   ctx.signal = createEffectsController(ctx);
   ctx.fit = createTheoryFitController(ctx);
+  ctx.retime = createProfileRetimeController(ctx);
   ctx.shift = createShiftController(ctx);
   ctx.generator = createGeneratorController(ctx);
   ctx.samples = createSamplesController(ctx);
@@ -132,7 +135,7 @@ export function createStudio() {
   view = createStudioView(ctx);
   store.subscribe(event => {
     if (event.type === 'saved') { view.savedStatus(); return; }
-    if (['undo', 'redo', 'cancel'].includes(event.type)) { ctx.fit.deactivate(); ctx.shift.deactivate(); ctx.signal.reset(); }
+    if (['undo', 'redo', 'cancel'].includes(event.type)) { ctx.retime.deactivate(); ctx.fit.deactivate(); ctx.shift.deactivate(); ctx.signal.reset(); }
     const points = ctx.activeProfile().points, start = points[0].time, end = points.at(-1).time;
     if (ui.view[0] < start || ui.view[1] > end || ui.view[0] >= ui.view[1]) ui.view = [start, end];
     ui.playhead = clamp(ui.playhead, start, end);

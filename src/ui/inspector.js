@@ -1,8 +1,10 @@
 import { icon } from './icons.js';
 import { renderTheoryFit } from './theory-fit.js';
+import { renderProfileRetime } from './profile-retime.js';
 
 function transformControls() {
   return `<div id="inspector-transform" class="inspector-content" role="tabpanel">
+    ${renderProfileRetime()}
     <section><h3>Shape & scale</h3><p class="section-description">Changes update the curve immediately. Time marks stay fixed.</p>
       <label>Time shift<span class="input-unit"><input id="edit-shift" type="number" step="any" value="0" aria-label="Profile time shift"><span>s</span></span></label>
       <p class="section-description">Move the profile across fixed measurement times. Choose how emptied intervals are filled.</p>

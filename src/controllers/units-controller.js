@@ -7,6 +7,7 @@ export const INPUT_DIMENSIONS = {
   'curve-time': 'time', 'curve-thrust': 'thrust',
   'measure-time-a': 'time', 'measure-time-b': 'time',
   'tf-start': 'time', 'tf-duration': 'time', 'tf-tail-start': 'time', 'tf-peak': 'thrust', 'tf-impulse': 'impulse', 'tf-average': 'thrust',
+  'retime-duration': 'time', 'retime-impulse': 'impulse', 'retime-peak': 'thrust',
 };
 const bounds = {
   'gen-peak': [.001, 1e7], 'gen-duration': [.001, 1e5], 'gen-impulse': [.000001, 1e12],

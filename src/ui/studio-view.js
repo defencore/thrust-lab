@@ -90,7 +90,7 @@ export function createStudioView(ctx) {
     $$('button[data-tool]').forEach(button => { button.classList.toggle('active', button.dataset.tool === profile.tool); button.setAttribute('aria-pressed', String(button.dataset.tool === profile.tool)); });
     $('#tool-caption').textContent = ui.tool === 'measure' ? 'Click two points or drag to measure time and thrust.' : ui.mode === 'create' ? 'Preview only · drag to pan' : { select: 'Drag to select a range', draw: 'Draw thrust · time marks stay fixed', curve: 'Click to add points · drag to shape the curve', shift: 'Drag left or right to shift thrust values along the fixed timeline.', pan: 'Drag to pan · scroll to zoom' }[ui.tool];
     selection(); savedStatus(); history();
-    ctx.curve.reconcile(); ctx.shift.render(); ctx.signal.render(); ctx.fit.render(); ctx.generator.render(); ctx.samples.render(); ctx.measurement.render();
+    ctx.curve.reconcile(); ctx.shift.render(); ctx.signal.render(); ctx.fit.render(); ctx.retime.render(); ctx.generator.render(); ctx.samples.render(); ctx.measurement.render();
     ctx.chart.setState(ctx.chartState());
   }
   return { render, savedStatus };

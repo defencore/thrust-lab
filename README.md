@@ -213,6 +213,14 @@ The export dialog shows **Original CSV format** for an imported profile. Cached 
 
 To combine two files, import the CSV containing the desired thrust measurements, then choose **Combine CSV files** in the project toolbar or **Use timings from another CSV** in Export. Select the original timing CSV and confirm its columns and units. The studio pairs its timestamps with the current thrust values by row index, without interpolation. Both files must contain the same number of profile measurements after recognized marker records are removed; mismatched counts leave the current profile unchanged. The timing source also supplies the original CSV number format, so this workflow can repair an older edited export while retaining its thrust values. The operation is undoable; old selections and control points are cleared because their timeline has been replaced explicitly.
 
+## Change burn duration on an imported recording
+
+In **Transform → Burn duration and output**, enter the desired burn duration. The edit takes effect immediately, using the current recording as its shape reference; no theoretical profile is required. Duration uses the interpolated 5%-peak burn window, with ignition held at its current time. The default **Keep current impulse** and **Automatic · keep shape** modes stretch the recorded shape and adjust its amplitude to retain total impulse. Stretching from 2.5 to 3.5 seconds therefore lowers the peak.
+
+Select **Custom impulse** and/or **Custom peak thrust** to specify coordinated targets. Fixing both total impulse and peak can require changing the curve proportions; incompatible targets show a feasible impulse range and retain the last valid result. The new burn must fit within the existing recording timeline: the operation never moves or adds measurement timestamps. Recorded detail is resampled without a smoothing pass, and imported CSV formatting remains attached to the recording.
+
+The comparison table shows before/result duration, impulse, and peak. Turn off **Live duration matching** to restore the active edit's baseline, or use Undo. Subsequent parameter changes recompute from that baseline rather than accumulating deformation. Only target modes are cached; a newly imported recording always supplies its own numeric defaults.
+
 ## Data formats
 
 ```csv

@@ -1,5 +1,37 @@
 /** English is the canonical interface language; project data is never translated. */
 export const dictionary = {
+  'Burn duration and output': 'Тривалість горіння та тяга',
+  'Stretch the current curve on its original timestamps. Impulse is preserved by default; peak thrust adjusts automatically.': 'Розтягніть поточний графік на його оригінальних часових мітках. За замовчуванням імпульс зберігається, а пікова тяга підлаштовується автоматично.',
+  'This adjustment uses the entire profile.': 'Це налаштування застосовується до всього профілю.',
+  'Live duration matching': 'Зміна тривалості в реальному часі',
+  'Matched burn duration': 'Цільова тривалість горіння',
+  'Impulse target': 'Цільовий імпульс',
+  'Impulse and peak targets': 'Цільовий імпульс і пікова тяга',
+  'Keep current impulse': 'Зберегти поточний імпульс',
+  'Custom impulse': 'Задати власний імпульс',
+  'Matched total impulse': 'Цільовий загальний імпульс',
+  'Peak target': 'Цільова пікова тяга',
+  'Automatic · keep shape': 'Автоматично · зберегти форму',
+  'Custom peak thrust': 'Задати власну пікову тягу',
+  'Matched peak thrust': 'Пікова тяга після підгонки',
+  'Automatic peak preserves the normalized curve shape. Setting both peak and impulse can change its proportions.': 'Автоматична пікова тяга зберігає відносну форму графіка. Одночасне задання пікової тяги й імпульсу може змінити його пропорції.',
+  'Adjust duration or targets to update the current profile.': 'Змініть тривалість або цілі, щоб оновити поточний профіль.',
+  'Profile duration matching results': 'Результат зміни тривалості профілю',
+  'Burn duration matched': 'Тривалість горіння підігнано',
+  'Duration matching is active.': 'Зміна тривалості активна.',
+  'Complete the highlighted target to update the profile.': 'Заповніть виділене цільове значення, щоб оновити профіль.',
+  'Choose a valid impulse mode.': 'Виберіть коректний режим імпульсу.',
+  'Choose a valid peak mode.': 'Виберіть коректний режим пікової тяги.',
+  'A shorter or earlier burn is needed to fit the original timestamps.': 'Щоб уміститися в оригінальні часові мітки, потрібне коротше горіння або раніший початок.',
+  'The requested targets cannot be represented on the original measurement grid.': 'Задані цілі неможливо відтворити на оригінальній сітці вимірювань.',
+  'Current profile': 'Поточний профіль',
+  'Profile duration matching': 'Зміна тривалості профілю',
+  'Burn timing options must be an object.': 'Параметри зміни тривалості горіння мають бути об’єктом.',
+  'Load at least three measurements to change the burn duration.': 'Завантажте щонайменше три вимірювання, щоб змінити тривалість горіння.',
+  'The profile needs a positive peak and a nonzero 5% burn duration.': 'Профіль має містити додатну пікову тягу й ненульову тривалість горіння за порогом 5%.',
+  'No positive burn was found in the current profile.': 'У поточному профілі не знайдено горіння з додатною тягою.',
+  'The current profile shape was preserved; peak thrust was adjusted to keep the impulse.': 'Форму поточного профілю збережено; пікову тягу підлаштовано для збереження імпульсу.',
+  'Custom peak and impulse targets can change the curve proportions.': 'Власні цілі пікової тяги й імпульсу можуть змінити пропорції графіка.',
   'Only timestamps and CSV number formatting are taken from this file. Current thrust measurements are kept.': 'Із цього файлу беруться лише часові мітки й числовий формат CSV. Поточні вимірювання тяги зберігаються.',
   'Use timings from another CSV': 'Взяти часові мітки з іншого CSV',
   'Pair the CSV timestamps with current thrust measurements in row order.': 'Поєднайте часові мітки CSV з поточними вимірюваннями тяги в порядку рядків.',
@@ -858,6 +890,7 @@ function canonicalLabel(text) { return englishByTranslation.get(text) ?? english
 
 function translatedDynamic(text) {
   let match;
+  if ((match = /^Maximum burn duration on this timeline: (.+)\.$/.exec(text))) return `Максимальна тривалість горіння на цій часовій шкалі: ${match[1]}.`;
   if ((match = /^Curve point (\d+)$/.exec(text))) return `Точка кривої ${match[1]}`;
   if ((match = /^Selected control point (\d+) of (\d+)$/.exec(text))) return `Вибрана контрольна точка ${match[1]} із ${match[2]}`;
   if ((match = /^Influence: (.+) — (.+) (s|ms|µs|μs|us|min)$/.exec(text))) return `Вплив: ${match[1]} — ${match[2]} ${match[3]}`;

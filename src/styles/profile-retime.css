@@ -1,0 +1,24 @@
+/* Whole-recording duration targets remain readable inside the narrow inspector. */
+.profile-retime-panel > .section-description { margin-top: 8px; }
+.profile-retime-scope { margin-top: 9px; color: #64809a; font-size: 12px; line-height: 1.6; }
+.profile-retime-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+.profile-retime-fields > label { display: flex; flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; color: #5b7188; font-size: 12px; }
+.profile-retime-fields > .section-description { margin-top: -7px; }
+.profile-retime-fields .input-unit, .profile-retime-fields input, .profile-retime-fields select { width: 100%; min-width: 0; }
+.profile-retime-fields input[readonly] { color: #70879d; background: #f1f5f8; border-color: #dce5ed; border-style: dashed; }
+.profile-retime-fields .input-unit > input { padding-right: 44px !important; }
+.profile-retime-targets { margin-top: 14px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.profile-retime-targets > summary { color: #516d88; cursor: pointer; font-size: 12px; font-weight: 600; line-height: 1.6; }
+.profile-retime-targets > .profile-retime-fields { margin-top: 14px; }
+.profile-retime-guidance { margin-top: 12px; color: #70849a; font-size: 12px; line-height: 1.7; }
+.profile-retime-status, .profile-retime-error { padding: 11px 12px; margin-top: 12px; border: 1px solid #dbe7f0; border-radius: 6px; color: #4b6c88; background: #f3f8fc; font-size: 12px; line-height: 1.6; }
+.profile-retime-error { border-color: #e8c5ad; color: #8c4f2b; background: #fff7ef; }
+.profile-retime-status:empty, .profile-retime-error:empty { display: none; }
+.profile-retime-results { margin-top: 14px; overflow-x: auto; border: 1px solid #dfe7ef; border-radius: 6px; }
+.profile-retime-comparison { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.profile-retime-comparison th, .profile-retime-comparison td { padding: 9px 7px; border-bottom: 1px solid #e7edf3; overflow-wrap: anywhere; vertical-align: top; }
+.profile-retime-comparison thead th { color: #7890a6; background: #f7fafd; font-weight: 600; }
+.profile-retime-comparison th:first-child { width: 36%; text-align: left; color: #62798f; font-weight: 500; }
+.profile-retime-comparison td { color: #6b8095; }
+.profile-retime-comparison tr > :last-child { color: #306b9f; background: #f3f8fd; }
+.profile-retime-comparison tbody tr:last-child > * { border-bottom: 0; }

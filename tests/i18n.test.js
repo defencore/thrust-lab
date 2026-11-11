@@ -2,6 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dictionary, translate, getLanguage, setLanguage, t } from '../src/i18n.js';
 
+test('duration matching explains impulse preservation, automatic peak and fixed-grid limits in both languages', () => {
+  for (const [english, ukrainian] of [
+    ['Burn duration and output', 'Тривалість горіння та тяга'],
+    ['Stretch the current curve on its original timestamps. Impulse is preserved by default; peak thrust adjusts automatically.', 'Розтягніть поточний графік на його оригінальних часових мітках. За замовчуванням імпульс зберігається, а пікова тяга підлаштовується автоматично.'],
+    ['This adjustment uses the entire profile.', 'Це налаштування застосовується до всього профілю.'],
+    ['Live duration matching', 'Зміна тривалості в реальному часі'],
+    ['Keep current impulse', 'Зберегти поточний імпульс'],
+    ['Custom impulse', 'Задати власний імпульс'],
+    ['Automatic · keep shape', 'Автоматично · зберегти форму'],
+    ['Custom peak thrust', 'Задати власну пікову тягу'],
+    ['Matched peak thrust', 'Пікова тяга після підгонки'],
+    ['Automatic peak preserves the normalized curve shape. Setting both peak and impulse can change its proportions.', 'Автоматична пікова тяга зберігає відносну форму графіка. Одночасне задання пікової тяги й імпульсу може змінити його пропорції.'],
+    ['Duration matching is active.', 'Зміна тривалості активна.'],
+    ['Complete the highlighted target to update the profile.', 'Заповніть виділене цільове значення, щоб оновити профіль.'],
+    ['A shorter or earlier burn is needed to fit the original timestamps.', 'Щоб уміститися в оригінальні часові мітки, потрібне коротше горіння або раніший початок.'],
+    ['The requested targets cannot be represented on the original measurement grid.', 'Задані цілі неможливо відтворити на оригінальній сітці вимірювань.'],
+    ['No positive burn was found in the current profile.', 'У поточному профілі не знайдено горіння з додатною тягою.'],
+    ['Maximum burn duration on this timeline: 3.56 s.', 'Максимальна тривалість горіння на цій часовій шкалі: 3.56 s.'],
+    ['Maximum burn duration on this timeline: 3,560 ms.', 'Максимальна тривалість горіння на цій часовій шкалі: 3,560 ms.'],
+    ['The current profile shape was preserved; peak thrust was adjusted to keep the impulse.', 'Форму поточного профілю збережено; пікову тягу підлаштовано для збереження імпульсу.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+});
+
 test('imported CSV numeric formatting and every custom decimal count remain bilingual', () => {
   for (const [english, ukrainian] of [
     ['Only timestamps and CSV number formatting are taken from this file. Current thrust measurements are kept.', 'Із цього файлу беруться лише часові мітки й числовий формат CSV. Поточні вимірювання тяги зберігаються.'],

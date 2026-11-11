@@ -236,6 +236,17 @@ test('CSV mappings follow remembered names when columns are reordered', () => {
   assert.deepEqual(result, { timeColumn: 2, thrustColumn: 0, timeUnit: 'ms', thrustUnit: 'kgf', header: 'yes' });
 });
 
+test('duration matching remembers target modes without replaying absolute targets on another recording', () => {
+  const storage = memoryStorage();
+  const preferences = createPreferences(storage);
+  assert.deepEqual(preferences.get().profileRetime, { impulseMode: 'preserve', peakMode: 'auto' });
+  preferences.update({ profileRetime: { impulseMode: 'custom', peakMode: 'custom', duration: 3.5, impulse: 900, peak: 450 } });
+  const restored = createPreferences(storage);
+  assert.deepEqual(restored.get().profileRetime, { impulseMode: 'custom', peakMode: 'custom' });
+  assert.deepEqual(restored.update({ profileRetime: { impulseMode: 'invalid', peakMode: null } }).profileRetime, { impulseMode: 'custom', peakMode: 'custom' });
+  assert.deepEqual(restored.reset().profileRetime, { impulseMode: 'preserve', peakMode: 'auto' });
+});
+
 test('new named headers use detection instead of stale column indices', () => {
   const saved = { timeColumn: { name: 'Clock', index: 2 }, thrustColumn: { name: 'Weight', index: 0 } };
   const detected = resolveImportPreferences(['Comments', 'Thrust (N)', 'Time (s)'], saved);

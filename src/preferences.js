@@ -25,6 +25,7 @@ export const PREFERENCE_DEFAULTS = freeze({
   },
   generator: null,
   theoryFit: null,
+  profileRetime: { impulseMode: 'preserve', peakMode: 'auto' },
   inspectorTab: 'transform',
   editorTab: 'samples',
   focus: false,
@@ -123,6 +124,12 @@ function normalize(patch, previous = PREFERENCE_DEFAULTS) {
   }
   if (own(patch, 'generator')) result.generator = normalizeGenerator(patch.generator, previous.generator);
   if (own(patch, 'theoryFit')) result.theoryFit = normalizeTheoryFitSettings(patch.theoryFit, previous.theoryFit);
+  if (plain(patch.profileRetime)) {
+    result.profileRetime = {
+      impulseMode: choice(patch.profileRetime.impulseMode, ['preserve', 'custom'], previous.profileRetime.impulseMode),
+      peakMode: choice(patch.profileRetime.peakMode, ['auto', 'custom'], previous.profileRetime.peakMode),
+    };
+  }
   if (own(patch, 'inspectorTab')) result.inspectorTab = choice(patch.inspectorTab, ['transform', 'curve', 'signal', 'theory'], previous.inspectorTab);
   if (own(patch, 'editorTab')) result.editorTab = choice(patch.editorTab, ['samples', 'history'], previous.editorTab);
   if (typeof patch.focus === 'boolean') result.focus = patch.focus;

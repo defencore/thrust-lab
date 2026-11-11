@@ -35,6 +35,7 @@ export function createEffectsController(ctx) {
     if (ui.mode !== 'edit') return;
     try {
       if (effects.activeId !== id) {
+        ctx.retime?.deactivate();
         ctx.fit?.deactivate();
         ctx.shift?.deactivate();
         ctx.curve?.deactivate(); reset(toggle, { preserveTransform: id === 'transform' });
