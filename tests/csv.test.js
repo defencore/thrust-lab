@@ -267,3 +267,11 @@ test('unrepresentable export units fail before emitting nonfinite or merged time
   assert.throws(() => exportCSV(points, { timeUnit: 'us' }), /cannot represent these timestamps/);
   assert.equal(parseCSV(exportCSV(points)).syntheticMarker.detected, true);
 });
+
+test('generated CSV exports can omit the header without dropping or shifting measurements', () => {
+  const points = [{ time: 0, thrust: 0 }, { time: .016, thrust: 1.234 }];
+  const csv = exportCSV(points, { timeUnit: 'ms', precision: 1, syntheticMarker: false, includeHeader: false });
+  assert.equal(csv, '0,0\r\n16,1.2\r\n');
+  assert.deepEqual(parseCSV(csv, { timeUnit: 'ms', hasHeader: false }).points, [{ time: 0, thrust: 0 }, { time: .016, thrust: 1.2 }]);
+  assert.throws(() => exportCSV(points, { includeHeader: 'yes' }), /header export must be true or false/);
+});

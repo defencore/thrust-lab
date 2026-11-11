@@ -1,3 +1,5 @@
+import { readCSVRecords, replaceCSVField, replaceCSVSpans } from './csv-records.js';
+
 export const CSV_TIME_FACTORS = Object.freeze({ s: 1, ms: .001, us: .000001 });
 export const CSV_THRUST_FACTORS = Object.freeze({ N: 1, kN: 1000, kgf: 9.80665, lbf: 4.4482216152605 });
 
@@ -5,6 +7,12 @@ const NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
 const MAX_ROWS = 30_000;
 const MAX_TOKEN = 4096;
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value));
+let lastLayout = null;
+
+function sourceRecords(text, delimiter) {
+  if (lastLayout?.text !== text || lastLayout.delimiter !== delimiter) lastLayout = { text, delimiter, records: readCSVRecords(text, delimiter).records.filter(record => !record.blank) };
+  return lastLayout.records;
+}
 
 /** CSV quoting already separates fields; a comma inside one numeric field is decimal. */
 export function csvNumber(value) {
@@ -12,6 +20,19 @@ export function csvNumber(value) {
   let normalized = value.trim();
   if (normalized.includes(',') && !normalized.includes('.')) normalized = normalized.replace(',', '.');
   return NUMBER.test(normalized) ? Number(normalized) : NaN;
+}
+
+function normalizeLayout(layout, format) {
+  if (!plain(layout) || typeof layout.text !== 'string' || layout.text.length > 20_000_000 || !Number.isInteger(layout.timeColumn) || !Number.isInteger(layout.thrustColumn) || layout.timeColumn < 0 || layout.thrustColumn < 0 || layout.timeColumn === layout.thrustColumn) throw new Error('CSV source format contains an invalid source layout.');
+  let records;
+  try { records = sourceRecords(layout.text, format.delimiter).slice(); }
+  catch { throw new Error('CSV source format contains an invalid source layout.'); }
+  if (format.hasHeader) {
+    const header = records.shift();
+    if (header?.fields[layout.timeColumn]?.value !== format.timeHeader || header?.fields[layout.thrustColumn]?.value !== format.thrustHeader) throw new Error('CSV source format header does not match its source layout.');
+  }
+  if (records.length !== format.rows.length || records.some((record, index) => record.fields[layout.timeColumn]?.value !== format.rows[index][0] || record.fields[layout.thrustColumn]?.value !== format.rows[index][1])) throw new Error('CSV source format measurements do not match their source layout.');
+  return { text: layout.text, timeColumn: layout.timeColumn, thrustColumn: layout.thrustColumn };
 }
 
 /** Keep source spelling compactly; numerical styles are inferred only when exporting. */
@@ -28,7 +49,9 @@ export function normalizeCSVFormat(value, points = null) {
     previous = time;
     return [...row];
   });
-  return { version: 1, delimiter: value.delimiter, hasHeader: value.hasHeader, timeUnit: value.timeUnit, thrustUnit: value.thrustUnit, timeHeader: value.timeHeader, thrustHeader: value.thrustHeader, rows };
+  const format = { version: 1, delimiter: value.delimiter, hasHeader: value.hasHeader, timeUnit: value.timeUnit, thrustUnit: value.thrustUnit, timeHeader: value.timeHeader, thrustHeader: value.thrustHeader, rows };
+  if (Object.hasOwn(value, 'layout')) format.layout = normalizeLayout(value.layout, format);
+  return format;
 }
 
 function style(raw) {
@@ -92,8 +115,36 @@ function decimalFor(rows, column) {
   return '.';
 }
 
-/** Source rows retain their numerical spelling; marker precision is never rounded away. */
-export function exportSourceCSV(points, source, markerPoints = []) {
+function exportLayoutCSV(points, format, markerRows, includeHeader) {
+  const { text, timeColumn, thrustColumn } = format.layout;
+  const records = sourceRecords(text, format.delimiter).slice();
+  const header = format.hasHeader ? records.shift() : null;
+  const replacements = [];
+  if (header && !includeHeader) replacements.push({ start: header.start, end: header.end + header.ending.length, text: '' });
+  for (let index = 0; index < points.length; index++) {
+    const sourceThrust = format.rows[index][1], value = points[index].thrust;
+    if (value === csvNumber(sourceThrust) * CSV_THRUST_FACTORS[format.thrustUnit]) continue;
+    const selected = records[index].fields[thrustColumn];
+    const number = formatCSVNumber(value / CSV_THRUST_FACTORS[format.thrustUnit], sourceThrust);
+    replacements.push({ start: selected.start, end: selected.end, text: replaceCSVField(text.slice(selected.start, selected.end), number) });
+  }
+  if (markerRows.length) {
+    const template = records[0];
+    const width = Math.max(template.fields.length, header?.fields.length ?? 0);
+    const ending = template.ending || records.find(record => record.ending)?.ending || '\r\n';
+    const prefix = markerRows.map(([time, thrust]) => Array.from({ length: width }, (_, index) => {
+      const value = index === timeColumn ? time : index === thrustColumn ? thrust : '';
+      const source = template.fields[index];
+      return source ? replaceCSVField(text.slice(source.start, source.end), value) : value;
+    }).join(format.delimiter) + ending).join('');
+    replacements.push({ start: template.start, end: template.start, text: prefix });
+  }
+  return replaceCSVSpans(text, replacements);
+}
+
+/** Source records retain their exact layout; marker precision is never rounded away. */
+export function exportSourceCSV(points, source, markerPoints = [], { includeHeader = true } = {}) {
+  if (typeof includeHeader !== 'boolean') throw new Error('CSV header export must be true or false.');
   const format = normalizeCSVFormat(source, points);
   const { delimiter, timeUnit, thrustUnit, rows } = format;
   const timeDecimal = decimalFor(rows, 0), thrustDecimal = decimalFor(rows, 1);
@@ -108,7 +159,8 @@ export function exportSourceCSV(points, source, markerPoints = []) {
     return valid;
   });
   const output = [];
-  if (format.hasHeader) output.push([format.timeHeader, format.thrustHeader]);
+  if (format.hasHeader && includeHeader && !format.layout) output.push([format.timeHeader, format.thrustHeader]);
+  const markerRows = [];
   let previous = -Infinity;
   for (let index = 0; index < markerPoints.length; index++) {
     const point = markerPoints[index];
@@ -116,8 +168,13 @@ export function exportSourceCSV(points, source, markerPoints = []) {
     const token = preferredTimesFit ? preferredMarkerTimes[index] : precise(time, timeDecimal);
     const emittedTime = csvNumber(token);
     if (!Number.isFinite(emittedTime) || emittedTime <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
-    output.push([token, precise(point.thrust / CSV_THRUST_FACTORS[thrustUnit], thrustDecimal)]);
+    const row = [token, precise(point.thrust / CSV_THRUST_FACTORS[thrustUnit], thrustDecimal)];
+    output.push(row); markerRows.push(row);
     previous = emittedTime;
+  }
+  if (format.layout) {
+    if (csvNumber(rows[0][0]) <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
+    return exportLayoutCSV(points, format, markerRows, includeHeader);
   }
   for (let index = 0; index < points.length; index++) {
     const point = points[index], [time, sourceThrust] = rows[index];

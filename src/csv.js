@@ -1,4 +1,5 @@
-import { createSyntheticMarker, inspectSyntheticMarker, SYNTHETIC_MARKER_COUNT } from './synthetic-marker.js';
+import { createSyntheticMarker, inspectSyntheticMarker } from './synthetic-marker.js';
+import { readCSVRecords, replaceCSVSpans } from './csv-records.js';
 import { CSV_TIME_FACTORS as TIME_FACTORS, CSV_THRUST_FACTORS as THRUST_FACTORS, csvNumber, normalizeCSVFormat, exportSourceCSV } from './csv-format.js';
 
 const MAX_POINTS = 30_000;
@@ -7,9 +8,8 @@ const MAX_FILE_SIZE = 20_000_000;
 function cleanText(text) {
   if (typeof text !== 'string') throw new Error('CSV content must be text.');
   if (text.length > MAX_FILE_SIZE) throw new Error('This file exceeds the 20 MB limit.');
-  const cleaned = text.replace(/^\uFEFF/, '');
-  if (!cleaned.trim()) throw new Error('The CSV file is empty.');
-  return cleaned;
+  if (!text.replace(/^\uFEFF/, '').trim()) throw new Error('The CSV file is empty.');
+  return text;
 }
 
 function detectDelimiter(text) {
@@ -32,63 +32,19 @@ function detectDelimiter(text) {
   return ',';
 }
 
-function readRows(text, delimiter) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let quoted = false;
-  let closedQuote = false;
-  let explicitRow = false;
-  function finishField() {
-    row.push(field.trim());
-    field = '';
-    closedQuote = false;
-  }
-  function finishRow() {
-    finishField();
-    // Ignore blank physical lines, but retain separator-only measurement rows.
-    if (explicitRow || row.length > 1 || row.some(value => value !== '')) rows.push(row);
-    row = [];
-    explicitRow = false;
-    if (rows.length > MAX_POINTS + SYNTHETIC_MARKER_COUNT + 1) throw new Error('CSV files are limited to 30,000 measurements.');
-  }
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (quoted) {
-      if (char === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; }
-        else { quoted = false; closedQuote = true; }
-      } else field += char;
-    } else if (char === delimiter) finishField();
-    else if (char === '\n' || char === '\r') {
-      if (char === '\r' && text[i + 1] === '\n') i++;
-      finishRow();
-    } else if (char === '"') {
-      if (field.trim() || closedQuote) throw new Error('Unexpected quote in the CSV file.');
-      field = '';
-      quoted = true;
-      explicitRow = true;
-    } else if (closedQuote && char.trim()) {
-      throw new Error('Unexpected text after a quoted CSV field.');
-    } else field += char;
-  }
-  if (quoted) throw new Error('A quoted CSV field is not closed.');
-  if (field || row.length || explicitRow) finishRow();
-  if (!rows.length) throw new Error('The CSV file contains no measurements.');
-  return rows;
-}
-
 function inspect(text, forcedDelimiter, headerOption) {
   const content = cleanText(text);
   const delimiter = forcedDelimiter ?? detectDelimiter(content);
   if (![',', ';', '\t'].includes(delimiter)) throw new Error('Choose comma, semicolon, or tab as the delimiter.');
-  const rows = readRows(content, delimiter);
+  const records = readCSVRecords(content, delimiter).records.filter(record => !record.blank);
+  const rows = records.map(record => record.fields.map(field => field.value));
+  if (!rows.length) throw new Error('The CSV file contains no measurements.');
   if (rows[0].length < 2) throw new Error('The CSV needs at least two columns: time and thrust.');
   if (headerOption !== undefined && typeof headerOption !== 'boolean') throw new Error('Header presence must be true or false.');
   // A numeric field identifies a measurement row even when other columns contain labels.
   const hasHeader = headerOption ?? (rows[0].some(value => value !== '') && rows[0].every(value => !Number.isFinite(csvNumber(value))));
   const headers = hasHeader ? rows[0] : rows[0].map((_, index) => `Column ${index + 1}`);
-  return { headers, rows: hasHeader ? rows.slice(1) : rows, delimiter, hasHeader };
+  return { headers, rows: hasHeader ? rows.slice(1) : rows, records: hasHeader ? records.slice(1) : records, delimiter, hasHeader, content };
 }
 
 export function inspectCSV(text, options = {}) {
@@ -151,7 +107,7 @@ function validatePoints(points, label = 'Profile') {
 }
 
 export function parseCSV(text, options = {}) {
-  const { headers, rows, delimiter, hasHeader } = inspect(text, options.delimiter, options.hasHeader);
+  const { headers, rows, records, delimiter, hasHeader, content } = inspect(text, options.delimiter, options.hasHeader);
   const warnings = [];
   const time = resolveColumn(options.timeColumn, headers, /^(?:time|timestamp|elapsed|seconds?|milliseconds?|microseconds?|t\b)/i, 0);
   const thrust = resolveColumn(options.thrustColumn, headers, /^(?:thrust|force|load|f\b)/i, 1);
@@ -174,14 +130,16 @@ export function parseCSV(text, options = {}) {
   const syntheticMarker = inspectSyntheticMarker(points);
   if (syntheticMarker.detected) warnings.push('Synthetic marker detected; 10 marker records were excluded from the profile.');
   const profile = validatePoints(syntheticMarker.profilePoints);
-  const csvFormat = normalizeCSVFormat({ version: 1, delimiter, hasHeader, timeUnit, thrustUnit, timeHeader: headers[time.index], thrustHeader: headers[thrust.index], rows: rows.slice(syntheticMarker.markerCount).map(row => [row[time.index], row[thrust.index]]) }, profile);
+  const sourceText = replaceCSVSpans(content, records.slice(0, syntheticMarker.markerCount).map(record => ({ start: record.start, end: record.end + record.ending.length, text: '' })));
+  const csvFormat = normalizeCSVFormat({ version: 1, delimiter, hasHeader, timeUnit, thrustUnit, timeHeader: headers[time.index], thrustHeader: headers[thrust.index], rows: rows.slice(syntheticMarker.markerCount).map(row => [row[time.index], row[thrust.index]]), layout: { text: sourceText, timeColumn: time.index, thrustColumn: thrust.index } }, profile);
   return { points: profile, headers, timeColumn: time.index, thrustColumn: thrust.index, warnings, syntheticMarker, csvFormat };
 }
 
-export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true, csvFormat = null } = {}) {
+export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true, csvFormat = null, includeHeader = true } = {}) {
   const validated = validatePoints(points);
   if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
-  if (csvFormat != null) return exportSourceCSV(validated, csvFormat, syntheticMarker ? createSyntheticMarker(validated) : []);
+  if (typeof includeHeader !== 'boolean') throw new Error('CSV header export must be true or false.');
+  if (csvFormat != null) return exportSourceCSV(validated, csvFormat, syntheticMarker ? createSyntheticMarker(validated) : [], { includeHeader });
   if (!(timeUnit in TIME_FACTORS) || !(thrustUnit in THRUST_FACTORS)) throw new Error('Unsupported export unit.');
   if (![',', ';', '\t'].includes(delimiter)) throw new Error('Unsupported export delimiter.');
   if (!Number.isInteger(precision) || precision < 0 || precision > 15) throw new Error('Export precision must be an integer from 0 to 15.');
@@ -196,7 +154,8 @@ export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter 
   const prefix = markerPoints.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${point.thrust / THRUST_FACTORS[thrustUnit]}`);
   // Preserve timestamp precision so export never merges distinct measurements.
   const rows = validated.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${Number((point.thrust / THRUST_FACTORS[thrustUnit]).toFixed(precision))}`);
-  return [`Time (${timeUnit})${delimiter}Thrust (${thrustUnit})`, ...prefix, ...rows].join('\r\n') + '\r\n';
+  const header = includeHeader ? [`Time (${timeUnit})${delimiter}Thrust (${thrustUnit})`] : [];
+  return [...header, ...prefix, ...rows].join('\r\n') + '\r\n';
 }
 
 export function downloadFile(filename, content, type = 'text/plain') {

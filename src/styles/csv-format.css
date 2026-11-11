@@ -8,3 +8,7 @@
 .export-source-format dt { color: #7b909b; font-size: 12px; }
 .export-source-format dd { margin: 6px 0 0; color: #3a596a; font: 13px/1.6 "SFMono-Regular", Consolas, monospace; overflow-wrap: anywhere; }
 .export-source-format .export-format-persistence { margin-top: 15px; font-size: 12px; }
+.export-modal label.export-marker-option { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; padding: 11px 12px; border: 1px solid #dce5ed; border-radius: 5px; background: #f8fafc; color: #5a7189; cursor: pointer; }
+.export-modal .export-marker-option > input { flex: 0 0 16px; width: 16px; height: 16px !important; min-height: 16px; margin: 0; }
+.export-modal .export-marker-option:has(input:checked) { border-color: #bfd5e8; background: #edf5fc; color: #356c9e; }
+.export-modal .export-marker-note { margin-top: 7px; }

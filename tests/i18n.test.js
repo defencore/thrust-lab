@@ -30,7 +30,7 @@ test('duration matching explains impulse preservation, automatic peak and fixed-
 
 test('imported CSV numeric formatting and every custom decimal count remain bilingual', () => {
   for (const [english, ukrainian] of [
-    ['Only timestamps and CSV number formatting are taken from this file. Current thrust measurements are kept.', 'Із цього файлу беруться лише часові мітки й числовий формат CSV. Поточні вимірювання тяги зберігаються.'],
+    ['Original CSV timestamps, columns and formatting are restored. Current thrust measurements are kept.', 'Відновлюються оригінальні часові мітки, колонки та форматування CSV. Поточні вимірювання тяги зберігаються.'],
     ['Use timings from another CSV', 'Взяти часові мітки з іншого CSV'],
     ['Pair the CSV timestamps with current thrust measurements in row order.', 'Поєднайте часові мітки CSV з поточними вимірюваннями тяги в порядку рядків.'],
     ['Import timestamp source', 'Імпортувати джерело часових міток'],
@@ -44,7 +44,12 @@ test('imported CSV numeric formatting and every custom decimal count remain bili
     ['CSV source format contains an invalid numeric record.', 'Оригінальний формат CSV містить некоректний числовий запис.'],
     ['Cannot format a nonfinite CSV value.', 'Неможливо відформатувати нескінченне або невизначене значення CSV.'],
     ['Original CSV format', 'Оригінальний формат CSV'],
+    ['All original columns, timestamps and number formatting are retained. Column headers are omitted.', 'Усі оригінальні стовпці, часові мітки та числовий формат зберігаються. Заголовки стовпців не додаються.'],
     ['Time values are copied exactly from the imported file. Thrust keeps the original decimal format.', 'Значення часу копіюються дослівно з імпортованого файлу. Тяга зберігає оригінальний десятковий формат.'],
+    ['This saved profile has no original CSV layout. Choose the original CSV to restore all columns and exact formatting without changing thrust.', 'Цей збережений профіль не містить оригінальної структури CSV. Виберіть оригінальний CSV, щоб відновити всі стовпці й точний формат без зміни тяги.'],
+    ['Restore original CSV layout', 'Відновити оригінальну структуру CSV'],
+    ['CSV header export must be true or false.', 'Параметр експорту заголовка CSV має бути true або false.'],
+    ['CSV files are exported without column names.', 'CSV-файли експортуються без назв стовпців.'],
     ['Time format', 'Формат часу'],
     ['Thrust format', 'Формат тяги'],
     ['Imported formatting is retained in saved projects.', 'Формат імпортованих даних зберігається у файлах проєкту.'],
@@ -63,7 +68,8 @@ test('synthetic export markers and analyzer navigation remain bilingual and reve
   for (const [english, ukrainian] of [
     ['Analyzer', 'Аналізатор'],
     ['Synthetic data analyzer', 'Аналізатор синтетичних даних'],
-    ['Every export includes 10 near-zero marker records before the profile. Measurement timestamps stay unchanged.', 'Кожен експорт містить 10 білянульових записів мітки перед профілем. Часові мітки вимірювань залишаються незмінними.'],
+    ['Include synthetic marker', 'Додати синтетичну мітку'],
+    ['Adds 10 near-zero records before the measurements.', 'Додає 10 білянульових записів перед вимірюваннями.'],
     ['Synthetic marker detected; 10 marker records were excluded from the profile.', 'Виявлено синтетичну мітку; 10 службових записів виключено з профілю.'],
     ['Synthetic marking needs at least two valid measurements with strictly increasing timestamps.', 'Для синтетичної мітки потрібні щонайменше два коректні вимірювання з часовими мітками, що строго зростають.'],
     ['The timeline has no room for a synthetic marker before its first measurement.', 'На часовій шкалі немає місця для синтетичної мітки перед першим вимірюванням.'],
