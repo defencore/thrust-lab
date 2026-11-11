@@ -100,8 +100,9 @@ export function createFilesController(ctx) {
       $('#export-source-thrust-example').textContent = source.rows[0][1];
     }
     $('#export-source-layout-note').hidden = !source || !!source.layout;
+    $('#export-header-note').textContent = source ? 'Original column names are retained. Headerless files stay headerless.' : 'Generated CSV files are exported without column names.';
     $('#export-source-description').textContent = source?.layout
-      ? 'All original columns, timestamps and number formatting are retained. Column headers are omitted.'
+      ? 'All original columns, timestamps, headers and number formatting are retained.'
       : 'Time values are copied exactly from the imported file. Thrust keeps the original decimal format.';
     $('#export-read-source').lastChild.textContent = source && !source.layout ? 'Restore original CSV layout' : 'Use timings from another CSV';
     $('#export-dialog .modal-heading h2').textContent = ui.mode === 'create' ? 'Export preview' : 'Export profile';
@@ -115,7 +116,7 @@ export function createFilesController(ctx) {
     event.preventDefault();
     try {
       const profile = ctx.activeProfile();
-      const content = exportCSV(profile.points, { csvFormat: profile.csvFormat, includeHeader: false, syntheticMarker: $('#export-synthetic-marker').checked, timeUnit: $('#export-time').value, thrustUnit: $('#export-thrust').value, delimiter: $('#export-delimiter').value === 'tab' ? '\t' : $('#export-delimiter').value, precision: Number($('#export-precision').value) });
+      const content = exportCSV(profile.points, { csvFormat: profile.csvFormat, includeHeader: !!profile.csvFormat, syntheticMarker: $('#export-synthetic-marker').checked, timeUnit: $('#export-time').value, thrustUnit: $('#export-thrust').value, delimiter: $('#export-delimiter').value === 'tab' ? '\t' : $('#export-delimiter').value, precision: Number($('#export-precision').value) });
       downloadFile(`${$('#export-name').value.replace(/\.csv$/i, '')}.csv`, content, 'text/csv;charset=utf-8');
       $('#export-dialog').close(); ctx.notify('CSV exported with all measurement timestamps.');
     } catch (error) { $('#export-error').textContent = error.message; $('#export-error').hidden = false; }

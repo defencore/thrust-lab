@@ -7,7 +7,7 @@ export function renderExportDialog() {
     <label>File name<input id="export-name" required maxlength="120"></label>
     <div id="export-read-source-section" class="export-read-source"><button id="export-read-source" class="button small" type="button">${icon('file')}Use timings from another CSV</button><p class="modal-note">Pair the CSV timestamps with current thrust measurements in row order.</p></div>
     <section id="export-source-format" class="export-source-format" hidden>
-      <h3>Original CSV format</h3><p id="export-source-description">All original columns, timestamps and number formatting are retained. Column headers are omitted.</p>
+      <h3>Original CSV format</h3><p id="export-source-description">All original columns, timestamps, headers and number formatting are retained.</p>
       <dl><div><dt>Time format</dt><dd id="export-source-time-example" data-i18n="ignore"></dd></div><div><dt>Thrust format</dt><dd id="export-source-thrust-example" data-i18n="ignore"></dd></div></dl>
       <p class="export-format-persistence">Imported formatting is retained in saved projects.</p>
       <p id="export-source-layout-note" hidden>This saved profile has no original CSV layout. Choose the original CSV to restore all columns and exact formatting without changing thrust.</p>
@@ -18,7 +18,7 @@ export function renderExportDialog() {
       <label>Delimiter<select id="export-delimiter"><option value=",">Comma (,)</option><option value=";">Semicolon (;)</option><option value="tab">Tab</option></select></label>
       <label>Thrust decimals<select id="export-precision">${Array.from({ length: 16 }, (_, digits) => `<option value="${digits}"${digits === 6 ? ' selected' : ''}>${digits} decimal ${digits === 1 ? 'place' : 'places'}</option>`).join('')}</select></label>
     </div>
-    <p class="modal-note export-header-note">CSV files are exported without column names.</p>
+    <p id="export-header-note" class="modal-note export-header-note">Original column names are retained. Headerless files stay headerless.</p>
     <p class="modal-note" id="export-summary"></p>
     <label class="checkbox-row export-marker-option"><span>Include synthetic marker</span><input id="export-synthetic-marker" type="checkbox" aria-describedby="export-marker-note"></label>
     <p class="modal-note export-marker-note" id="export-marker-note">Adds 10 near-zero records before the measurements.</p>

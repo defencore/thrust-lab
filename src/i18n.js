@@ -1,5 +1,6 @@
 /** English is the canonical interface language; project data is never translated. */
 export const dictionary = {
+  'Generated CSV files are exported without column names.': 'Згенеровані CSV-файли експортуються без назв стовпців.',
   'CSV files must use UTF-8 text encoding.': 'CSV-файли мають бути збережені в кодуванні UTF-8.',
   'CSV source format contains an invalid source layout.': 'Збережена структура початкового CSV некоректна.',
   'CSV source format header does not match its source layout.': 'Заголовок CSV не відповідає збереженій структурі початкового файлу.',
@@ -51,12 +52,12 @@ export const dictionary = {
   'CSV source format contains an invalid numeric record.': 'Оригінальний формат CSV містить некоректний числовий запис.',
   'Cannot format a nonfinite CSV value.': 'Неможливо відформатувати нескінченне або невизначене значення CSV.',
   'Original CSV format': 'Оригінальний формат CSV',
-  'All original columns, timestamps and number formatting are retained. Column headers are omitted.': 'Усі оригінальні стовпці, часові мітки та числовий формат зберігаються. Заголовки стовпців не додаються.',
+  'All original columns, timestamps, headers and number formatting are retained.': 'Усі оригінальні стовпці, часові мітки, заголовки та числовий формат зберігаються.',
   'Time values are copied exactly from the imported file. Thrust keeps the original decimal format.': 'Значення часу копіюються дослівно з імпортованого файлу. Тяга зберігає оригінальний десятковий формат.',
   'This saved profile has no original CSV layout. Choose the original CSV to restore all columns and exact formatting without changing thrust.': 'Цей збережений профіль не містить оригінальної структури CSV. Виберіть оригінальний CSV, щоб відновити всі стовпці й точний формат без зміни тяги.',
   'Restore original CSV layout': 'Відновити оригінальну структуру CSV',
   'CSV header export must be true or false.': 'Параметр експорту заголовка CSV має бути true або false.',
-  'CSV files are exported without column names.': 'CSV-файли експортуються без назв стовпців.',
+  'Original column names are retained. Headerless files stay headerless.': 'Оригінальні назви стовпців зберігаються. До файлів без заголовка новий заголовок не додається.',
   'Time format': 'Формат часу',
   'Thrust format': 'Формат тяги',
   'Imported formatting is retained in saved projects.': 'Формат імпортованих даних зберігається у файлах проєкту.',

@@ -93,9 +93,9 @@ test('source-format exports ignore cached custom units and precision without cha
   f.$('#export-form').onsubmit({ preventDefault() {} });
   assert.equal(f.downloads.length, 1);
   const csv = await f.downloads[0].blob.text();
-  assert.equal(csv, '4084;943.1\n4085;944.0\n');
+  assert.equal(csv, 'Time (ms);Thrust (N)\n4084;943.1\n4085;944.0\n');
   const decoded = parseCSV(csv, { timeUnit: 'ms', thrustUnit: 'N' });
-  assert.equal(inspectCSV(csv).hasHeader, false);
+  assert.equal(inspectCSV(csv).hasHeader, true);
   assert.equal(decoded.syntheticMarker.detected, false);
   assert.deepEqual(decoded.points.map(point => point.time), before.points.map(point => point.time));
   assert.deepEqual(f.store.get(), before);
@@ -133,7 +133,7 @@ test('CSV A supplies exact timings while CSV B keeps its edited forces and exist
   assert.equal(f.$('#import-dialog').open, false);
   assert.equal(f.$('#import-error').hidden, true);
   f.$('#export-form').onsubmit({ preventDefault() {} });
-  assert.equal(await f.downloads[0].blob.text(), '4084;943.1\n4085;944.1\n');
+  assert.equal(await f.downloads[0].blob.text(), 'Time (ms);Thrust (N)\n4084;943.1\n4085;944.1\n');
 });
 
 test('imported downloads keep reordered auxiliary columns, quoting, BOM, whitespace and EOF spelling', async t => {
@@ -153,10 +153,40 @@ test('imported downloads keep reordered auxiliary columns, quoting, BOM, whitesp
   const bytes = await f.downloads[0].blob.arrayBuffer();
   assert.deepEqual([...new Uint8Array(bytes).slice(0, 3)], [239, 187, 191]);
   const csv = new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes);
-  assert.equal(csv, `\uFEFF${first.replace('"943,0"', '"943,1"')}\r\n${last}`);
-  const decoded = parseCSV(csv, { timeColumn: 1, thrustColumn: 2, timeUnit: 'ms', thrustUnit: 'N', hasHeader: false });
+  assert.equal(csv, source.replace('"943,0"', '"943,1"'));
+  const decoded = parseCSV(csv, { timeColumn: 1, thrustColumn: 2, timeUnit: 'ms', thrustUnit: 'N' });
   assert.deepEqual(decoded.points, [{ time: before.points[0].time, thrust: 943.1 }, { time: before.points[1].time, thrust: 944 }]);
   assert.equal(decoded.syntheticMarker.detected, false);
+  assert.deepEqual(f.store.get(), before);
+});
+
+test('a source time_ms,thrust,pressure header and all three columns remain unchanged around edited thrust', async t => {
+  const f = fixture(t);
+  const source = 'time_ms,thrust,pressure\n0,0.0,10.00\n16,45.0,11.25\n33,0.0,12.00\n';
+  await f.chooseCSV('#import', source, 'Three columns.csv'); f.submitImport();
+  f.store.edit('Correct thrust', project => { project.points[1].thrust = 45.062; });
+  const before = structuredClone(f.store.get());
+  f.controller.openExport(); f.$('#export-form').onsubmit({ preventDefault() {} });
+  const csv = await f.downloads[0].blob.text();
+  assert.equal(csv, source.replace('16,45.0,11.25', '16,45.1,11.25'));
+  assert.deepEqual(inspectCSV(csv).headers, ['time_ms', 'thrust', 'pressure']);
+  assert.equal(csv.trim().split('\n').length, 4);
+  assert.deepEqual(parseCSV(csv).points.map(point => point.time), before.points.map(point => point.time));
+  assert.deepEqual(f.store.get(), before);
+});
+
+test('headerless source records stay headerless without losing their auxiliary column or numeric spelling', async t => {
+  const f = fixture(t);
+  const source = '0000;00,0;001,20\n0016;07,0;001,30';
+  await f.chooseCSV('#import', source, 'No header.csv');
+  f.$('#csv-time-unit').value = 'ms'; f.submitImport();
+  f.store.edit('Correct thrust', project => { project.points[1].thrust = 7.16; });
+  const before = structuredClone(f.store.get());
+  f.controller.openExport(); f.$('#export-form').onsubmit({ preventDefault() {} });
+  const csv = await f.downloads[0].blob.text();
+  assert.equal(csv, '0000;00,0;001,20\n0016;07,2;001,30');
+  assert.equal(inspectCSV(csv).hasHeader, false);
+  assert.deepEqual(parseCSV(csv, { timeUnit: 'ms' }).points.map(point => point.time), before.points.map(point => point.time));
   assert.deepEqual(f.store.get(), before);
 });
 
@@ -168,9 +198,9 @@ test('an imported recording adds the synthetic prefix only after explicit opt-in
   f.$('#export-form').onsubmit({ preventDefault() {} });
   const csv = await f.downloads[0].blob.text();
   const decoded = parseCSV(csv, { timeUnit: 'ms', thrustUnit: 'N' });
-  assert.equal(inspectCSV(csv).hasHeader, false);
+  assert.equal(inspectCSV(csv).hasHeader, true);
   assert.equal(decoded.syntheticMarker.detected, true);
-  assert.equal(csv.trim().split(/\r\n|\r|\n/).length, before.points.length + 10);
+  assert.equal(csv.trim().split(/\r\n|\r|\n/).length, before.points.length + 11);
   assert.deepEqual(decoded.points.map(point => point.time), before.points.map(point => point.time));
   assert.deepEqual(f.store.get(), before);
   f.controller.openExport();
@@ -187,7 +217,7 @@ test('older saved numeric formats explain that the original CSV is needed to res
   f.$('#export-form').onsubmit({ preventDefault() {} });
   assert.equal(f.$('#export-error').hidden, true);
   const csv = await f.downloads[0].blob.text();
-  assert.equal(inspectCSV(csv).hasHeader, false);
+  assert.equal(inspectCSV(csv).hasHeader, true);
   assert.equal(parseCSV(csv, { timeUnit: 'ms' }).syntheticMarker.detected, false);
   assert.deepEqual(parseCSV(csv, { timeUnit: 'ms' }).points.map(point => point.time), f.imported.points.map(point => point.time));
   await f.chooseCSV('#export-read-source'); f.submitImport();
