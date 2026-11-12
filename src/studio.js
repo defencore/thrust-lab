@@ -21,6 +21,7 @@ import { createSettingsController } from './controllers/settings-controller.js';
 import { createChartController } from './controllers/chart-controller.js';
 import { createChartGridController } from './controllers/chart-grid-controller.js';
 import { createChartImageController } from './controllers/chart-image-controller.js';
+import { createChartImageSettingsController } from './controllers/chart-image-settings-controller.js';
 import { createMeasurementController } from './controllers/measurement-controller.js';
 import { createShiftController } from './controllers/shift-controller.js';
 import { clearChartSelection } from './controllers/selection-controller.js';
@@ -130,6 +131,7 @@ export function createStudio() {
   ctx.theory = createTheoryController(ctx);
   ctx.chart = createChartController(ctx);
   ctx.grid = createChartGridController(ctx);
+  ctx.imageSettings = createChartImageSettingsController(ctx);
   ctx.image = createChartImageController(ctx);
   ctx.analyzer = createAnalyzerController(ctx);
   bindNavigation(ctx);

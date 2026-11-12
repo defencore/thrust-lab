@@ -70,15 +70,15 @@ function textLines(values, x, y, { size = 12, height = size * 1.35, fill = '#657
 }
 
 /** Build a self-contained report so the saved image includes the same profile facts as the editor. */
-export function buildChartImageSVG({ plot, width, height, title = '', metrics = [], legend = [], footer = '', caption = 'Thrust Lab Studio' }) {
+export function buildChartImageSVG({ plot, width, height, title = '', metrics = [], legend = [], footer = '', showDetails = false, showLegend = false }) {
   dimension(width); dimension(height);
   if (typeof plot !== 'string' || !/^\s*<svg\b/i.test(plot) || !Array.isArray(metrics) || metrics.length !== 4 || !Array.isArray(legend)) throw new Error('Chart images need one SVG plot and four summary metrics.');
   const plotWidth = Math.max(480, width), scale = plotWidth / width, padding = 24, reportWidth = plotWidth + padding * 2;
   const columns = width < 700 ? 2 : 4, gap = 12, cardWidth = (plotWidth - gap * (columns - 1)) / columns;
   const heading = lines(title, Math.max(16, Math.floor(plotWidth / 11)), 3);
-  let content = `<rect width="100%" height="100%" fill="#fff"/>${textLines([caption], padding, 25, { size: 10, fill: '#73879a', weight: 600 })}`;
-  content += textLines(heading, padding, 55, { size: 20, height: 25, fill: '#253b52', weight: 650 });
-  const cardsTop = 64 + Math.max(0, heading.length - 1) * 25, cardHeight = 112;
+  let content = '<rect width="100%" height="100%" fill="#fff"/>';
+  content += textLines(heading, padding, 34, { size: 20, height: 25, fill: '#253b52', weight: 650 });
+  const cardsTop = 45 + Math.max(0, heading.length - 1) * 25, cardHeight = showDetails ? 112 : 84;
   for (const [index, metric] of metrics.entries()) {
     const x = padding + index % columns * (cardWidth + gap), y = cardsTop + Math.floor(index / columns) * (cardHeight + gap);
     const inner = cardWidth - 24;
@@ -87,17 +87,19 @@ export function buildChartImageSVG({ plot, width, height, title = '', metrics = 
     content += `<rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="#f7f9fc" stroke="#dce5ed"/>`;
     content += textLines(lines(metric.label, Math.max(10, Math.floor(inner / 6)), 2), x + 12, y + 20, { size: 10, height: 13, fill: '#657b91', weight: 600 });
     content += textLines([value], x + 12, y + 64, { size: valueSize, fill: '#29445f', weight: 550 });
-    content += textLines(lines(metric.detail, Math.max(10, Math.floor(inner / 5.7)), 2), x + 12, y + 86, { size: 10, height: 13, fill: '#75899e' });
+    if (showDetails) content += textLines(lines(metric.detail, Math.max(10, Math.floor(inner / 5.7)), 2), x + 12, y + 86, { size: 10, height: 13, fill: '#75899e' });
   }
-  let legendY = cardsTop + Math.ceil(metrics.length / columns) * (cardHeight + gap) + 8, legendX = padding;
-  for (const item of legend) {
+  const rows = Math.ceil(metrics.length / columns), cardsBottom = cardsTop + rows * cardHeight + (rows - 1) * gap;
+  const shownLegend = showLegend ? legend : [];
+  let legendY = cardsBottom + 24, legendX = padding;
+  for (const item of shownLegend) {
     const itemWidth = Math.min(plotWidth, Math.max(65, String(item.label).length * 6.5 + 34));
     if (legendX > padding && legendX + itemWidth > reportWidth - padding) { legendX = padding; legendY += 23; }
     content += `<line x1="${legendX}" y1="${legendY - 4}" x2="${legendX + 18}" y2="${legendY - 4}" stroke="${escape(item.color || '#3978b8')}" stroke-width="2"${item.dashed ? ' stroke-dasharray="5 3"' : ''}/>`;
     content += textLines([item.label], legendX + 25, legendY, { size: 11, fill: '#6b8095' });
     legendX += itemWidth;
   }
-  const plotTop = legendY + (legend.length ? 13 : 0), plotHeight = height * scale;
+  const plotTop = shownLegend.length ? legendY + 13 : cardsBottom + 12, plotHeight = height * scale;
   content += `<g transform="translate(${padding},${plotTop}) scale(${scale})">${plot}</g>`;
   const footerLines = lines(footer, Math.max(20, Math.floor(plotWidth / 6)), 3);
   const footerTop = plotTop + plotHeight + 20;

@@ -6,6 +6,17 @@
 .chart-image-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
 .chart-image-actions .button { min-height: 34px; padding: 5px 9px; font-size: 12px; }
 .chart-image-actions .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.chart-image-settings { position: relative; min-width: 0; }
+.chart-image-settings > summary { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 5px 9px; border: 1px solid transparent; border-radius: 4px; color: #657c94; font-size: 12px; line-height: 1.5; cursor: pointer; list-style: none; }
+.chart-image-settings > summary::-webkit-details-marker { display: none; }
+.chart-image-settings > summary:hover, .chart-image-settings[open] > summary { color: #356c9e; background: #edf4fc; border-color: #d5e3f0; }
+.chart-image-settings > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chart-image-settings > summary .icon:last-child { width: 12px; height: 12px; }
+.chart-image-settings[open] > summary .icon:last-child { transform: rotate(180deg); }
+.chart-image-settings-panel { position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; width: 260px; max-width: calc(100vw - 48px); padding: 12px; border: 1px solid #d8e3ef; border-radius: 6px; background: #fff; box-shadow: 0 8px 24px #263e5b1c; }
+.chart-image-settings-panel > p { margin-bottom: 7px; color: #74869a; font-size: 12px; line-height: 1.6; }
+.chart-image-settings-panel > label { display: flex; flex-direction: row; align-items: center; gap: 9px; min-height: 36px; color: #526c85; font-size: 12px; line-height: 1.5; cursor: pointer; }
+.chart-image-settings-panel > label > input { width: 16px; height: 16px; min-height: 16px; flex: 0 0 16px; margin: 0; }
 .chart-report .metrics-grid { padding: 0 18px; margin: 0 0 12px; gap: 8px; }
 .chart-report .metric { min-height: 104px; padding: 12px 11px; background: #f8fafc; border-color: #e4eaf0; }
 .chart-report .metric strong { font-size: clamp(20px, 1.6vw, 26px); }
@@ -17,4 +28,7 @@
   .chart-report .metrics-grid { padding: 0 12px; gap: 7px; }
   .chart-report .metric { padding: 10px 9px; }
   .chart-report .chart-legend { padding-left: 14px; padding-right: 14px; }
+  .chart-image-settings { flex: 1 1 100%; }
+  .chart-image-settings > summary { width: max-content; max-width: 100%; margin-left: auto; }
+  .chart-image-settings-panel { position: static; width: 100%; max-width: none; margin-top: 6px; box-shadow: none; }
 }

@@ -8,6 +8,14 @@ export function renderChartReport() {
       <div class="chart-image-actions" role="group" aria-label="Chart image actions">
         <button id="copy-chart-image" class="button quiet small" type="button" title="Copy chart image">${icon('copy')}<span>Copy image</span></button>
         <button id="save-chart-image" class="button small" type="button" title="Save chart image as PNG">${icon('download')}<span>Save PNG</span></button>
+        <details class="chart-image-settings">
+          <summary title="Image settings">${icon('sliders')}<span>Image settings</span>${icon('chevron')}</summary>
+          <div class="chart-image-settings-panel">
+            <p>Applies to copied and saved images.</p>
+            <label><input id="chart-image-details" type="checkbox"><span>Show metric details</span></label>
+            <label><input id="chart-image-legend" type="checkbox"><span>Show legend</span></label>
+          </div>
+        </details>
       </div>
     </div>
     <div class="metrics-grid">

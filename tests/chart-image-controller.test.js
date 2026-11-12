@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createChartImageController } from '../src/controllers/chart-image-controller.js';
+import { createChartImageController, chartImageModel } from '../src/controllers/chart-image-controller.js';
 
 function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
 function fixture(dependencies = {}) {
@@ -64,6 +64,52 @@ test('save downloads the encoded PNG with the profile name and restores controls
   await failed.controller.save();
   assert.deepEqual(failed.notifications, [['The chart image could not be saved. Try again.', true]]);
   assert.equal(failed.$('#save-chart-image').disabled, false);
+});
+
+function reportFixture(settings = {}) {
+  const fields = new Map();
+  for (const [name, label, value, unit, detail] of [
+    ['impulse', 'TOTAL IMPULSE', '921.569', 'N·s', '352 measurement points'],
+    ['peak', 'PEAK THRUST', '455.200', 'N', 'at 2.500 s'],
+    ['burn', 'BURN DURATION', '3.500', 's', '5% peak threshold'],
+    ['average', 'MEAN BURN THRUST', '263.305', 'N', 'Impulse / 5% burn duration'],
+  ]) {
+    const card = { querySelector: selector => ({ textContent: selector === 'span' ? label : detail }) };
+    fields.set(`#metric-${name}`, { textContent: value, nextElementSibling: { textContent: unit }, closest: () => card });
+  }
+  const item = (id, label) => ({ id, hidden: false, textContent: label, css: {}, querySelector: () => ({ css: { borderTopColor: '#3978b8', borderTopStyle: 'solid' } }) });
+  const entries = [item('', 'Working'), item('theory-legend', 'Theoretical'), item('original-legend', 'Original')];
+  const container = { hidden: false, css: {}, querySelectorAll: () => entries };
+  fields.set('#chart-report .chart-legend', container); fields.set('#chart-name', { textContent: 'Measured profile' });
+  const profile = { showTheory: true, theory: [{}], showOriginal: true, original: [{}] };
+  const ctx = { $: selector => fields.get(selector), imageSettings: { getState: () => settings }, activeProfile: () => profile, ui: { view: [1, 4.5] }, units: { format: value => value.toFixed(3), symbol: () => 's' } };
+  return { ctx, profile, entries, container, getStyle: node => ({ display: 'inline', visibility: 'visible', opacity: '1', ...node.css }) };
+}
+
+test('image model hides details and legend by default while retaining metric values and the visible window', () => {
+  const f = reportFixture(), model = chartImageModel(f.ctx, f);
+  assert.equal(model.showDetails, false); assert.equal(model.showLegend, false);
+  assert.deepEqual(model.metrics.map(metric => metric.detail), ['', '', '', '']);
+  assert.deepEqual(model.metrics.map(metric => metric.value), ['921.569', '455.200', '3.500', '263.305']);
+  assert.deepEqual(model.legend, []);
+  assert.equal(model.footer, 'Time window: 1.000 — 4.500 s');
+  const detailed = reportFixture({ showDetails: true, showLegend: true }), enabled = chartImageModel(detailed.ctx, detailed);
+  assert.equal(enabled.metrics[0].detail, '352 measurement points');
+  assert.ok(enabled.footer.startsWith('Full profile metrics · Time window:'));
+});
+
+test('enabled image legend follows actual profile layers and computed DOM visibility', () => {
+  const f = reportFixture({ showLegend: true });
+  f.profile.showTheory = false; f.profile.showOriginal = false;
+  assert.deepEqual(chartImageModel(f.ctx, f).legend.map(item => item.label), ['Working']);
+  f.profile.showTheory = true; f.profile.showOriginal = true;
+  f.entries[1].hidden = true; f.entries[2].css.visibility = 'hidden';
+  assert.deepEqual(chartImageModel(f.ctx, f).legend.map(item => item.label), ['Working']);
+  f.entries[1].hidden = false; f.entries[2].css.visibility = 'visible';
+  f.profile.theory = null;
+  assert.deepEqual(chartImageModel(f.ctx, f).legend.map(item => item.label), ['Working', 'Original']);
+  f.container.css.display = 'none';
+  assert.deepEqual(chartImageModel(f.ctx, f).legend, []);
 });
 
 test('an export keeps its original filename if the active profile changes during encoding', async () => {

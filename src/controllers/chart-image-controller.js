@@ -3,19 +3,34 @@ import { t } from '../i18n.js';
 
 const text = node => node?.textContent?.trim() || '';
 
-function imageReport(ctx) {
-  const { $, chart, units, ui } = ctx;
-  const captured = captureChartSVG(chart.svg);
+/** Image facts follow the requested visibility, independently of the PNG renderer. */
+export function chartImageModel(ctx, { getStyle = globalThis.getComputedStyle } = {}) {
+  const { $, units, ui } = ctx;
+  const settings = ctx.imageSettings?.getState() || {};
+  const showDetails = settings.showDetails === true, showLegend = settings.showLegend === true;
   const metrics = ['impulse', 'peak', 'burn', 'average'].map(name => {
     const value = $(`#metric-${name}`), card = value.closest('.metric');
-    return { label: text(card.querySelector('span')), value: text(value), unit: text(value.nextElementSibling), detail: text(card.querySelector('p')) };
+    return { label: text(card.querySelector('span')), value: text(value), unit: text(value.nextElementSibling), detail: showDetails ? text(card.querySelector('p')) : '' };
   });
-  const legend = [...$('#chart-report .chart-legend').querySelectorAll(':scope > span')].filter(item => !item.hidden).map(item => {
-    const swatch = item.querySelector('i'), style = getComputedStyle(swatch);
+  const profile = ctx.activeProfile(), container = $('#chart-report .chart-legend');
+  const visible = node => {
+    if (node.hidden) return false;
+    const style = getStyle(node);
+    return style.display !== 'none' && !['hidden', 'collapse'].includes(style.visibility) && style.opacity !== '0';
+  };
+  const items = showLegend && container && visible(container) ? [...container.querySelectorAll(':scope > span')] : [];
+  const legend = items.filter(item => visible(item)
+    && (item.id !== 'theory-legend' || profile.showTheory && !!profile.theory)
+    && (item.id !== 'original-legend' || profile.showOriginal && !!profile.original)).map(item => {
+    const swatch = item.querySelector('i'), style = getStyle(swatch);
     return { label: text(item), color: style.borderTopColor, dashed: style.borderTopStyle === 'dashed' };
   });
-  const footer = `${t('Full profile metrics')} · ${t('Time window')}: ${units.format(ui.view[0], 'time', 3)} — ${units.format(ui.view[1], 'time', 3)} ${units.symbol('time')}`;
-  return buildChartImageSVG({ ...captured, title: text($('#chart-name')), metrics, legend, footer });
+  const footer = `${showDetails ? `${t('Full profile metrics')} · ` : ''}${t('Time window')}: ${units.format(ui.view[0], 'time', 3)} — ${units.format(ui.view[1], 'time', 3)} ${units.symbol('time')}`;
+  return { title: text($('#chart-name')), metrics, legend, footer, showDetails, showLegend };
+}
+
+function imageReport(ctx) {
+  return buildChartImageSVG({ ...captureChartSVG(ctx.chart.svg), ...chartImageModel(ctx) });
 }
 
 /** Clipboard writes begin inside the click gesture; PNG encoding resolves their promised image later. */

@@ -48,7 +48,7 @@ export function createStudioView(ctx) {
     const m = metrics(profile.points);
     for (const [id, key, dimension, digits] of [['impulse', 'impulse', 'impulse', 2], ['peak', 'peak', 'thrust', 2], ['burn', 'burnDuration', 'time', 3], ['average', 'burnAverage', 'thrust', 2]]) $(`#metric-${id}`).textContent = units.format(m[key], dimension, digits);
     $('#metric-class').textContent = `${m.samples.toLocaleString('en-US')} measurement points`;
-    const peak = profile.points.reduce((a, b) => a.thrust > b.thrust ? a : b);
+    const peak = profile.points.reduce((a, b) => a.thrust >= b.thrust ? a : b);
     $('#metric-peak-time').textContent = `at ${units.format(peak.time, 'time', 3)} ${units.symbol('time')}`;
     $('#chart-name').textContent = profile.name;
     $('#project-name').readOnly = ui.mode === 'create';

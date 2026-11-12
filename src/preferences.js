@@ -27,6 +27,7 @@ export const PREFERENCE_DEFAULTS = freeze({
   theoryFit: null,
   profileRetime: { impulseMode: 'preserve', peakMode: 'auto' },
   chartGrid: { mode: 'auto', stepSI: 25, height: null },
+  chartImage: { showDetails: false, showLegend: false },
   inspectorTab: 'transform',
   editorTab: 'samples',
   focus: false,
@@ -137,6 +138,9 @@ function normalize(patch, previous = PREFERENCE_DEFAULTS) {
       stepSI: own(patch.chartGrid, 'stepSI') ? numeric(patch.chartGrid.stepSI, [Number.MIN_VALUE, Number.MAX_VALUE], previous.chartGrid.stepSI) : previous.chartGrid.stepSI,
       height: own(patch.chartGrid, 'height') ? choice(patch.chartGrid.height, [null, 340, 520, 760, 1000], previous.chartGrid.height) : previous.chartGrid.height,
     };
+  }
+  if (plain(patch.chartImage)) {
+    for (const name of ['showDetails', 'showLegend']) if (typeof patch.chartImage[name] === 'boolean') result.chartImage[name] = patch.chartImage[name];
   }
   if (own(patch, 'inspectorTab')) result.inspectorTab = choice(patch.inspectorTab, ['transform', 'curve', 'signal', 'theory'], previous.inspectorTab);
   if (own(patch, 'editorTab')) result.editorTab = choice(patch.editorTab, ['samples', 'history'], previous.editorTab);

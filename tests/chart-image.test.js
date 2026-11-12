@@ -12,11 +12,11 @@ const report = overrides => buildChartImageSVG({
   plot: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><path d="M0 400L400 0L800 400"/></svg>',
   width: 800, height: 400, title: 'Measured profile', metrics: summary,
   legend: [{ label: 'Working', color: '#3978b8' }, { label: 'Theoretical', color: '#ba8c43', dashed: true }],
-  footer: 'Full profile metrics · Time window: 1.000 — 4.500 s', ...overrides,
+  footer: 'Time window: 1.000 — 4.500 s', ...overrides,
 });
 
 test('the report includes the exact profile facts, original plot and visible-reference legend', () => {
-  const built = report();
+  const built = report({ showDetails: true, showLegend: true });
   for (const text of ['Measured profile', '921.569 N·s', '455.200 N', '3.500 s', '263.305 N', '352 measurement points', 'Working', 'Theoretical', 'Time window: 1.000 — 4.500 s']) assert.ok(built.svg.includes(text), text);
   assert.match(built.svg, /stroke-dasharray="5 3"/);
   assert.match(built.svg, /M0 400L400 0L800 400/);
@@ -30,7 +30,7 @@ test('small plots keep their aspect ratio with two readable metric columns', () 
   const built = report({ width: 300, height: 500, plot: '<svg width="300" height="500"></svg>' });
   assert.equal(built.width, 528);
   assert.match(built.svg, /scale\(1\.6\)/);
-  const cards = [...built.svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="112"/g)];
+  const cards = [...built.svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="84"/g)];
   assert.equal(cards.length, 4);
   assert.equal(new Set(cards.map(match => match[1])).size, 2);
   assert.equal(new Set(cards.map(match => match[2])).size, 2);
@@ -38,7 +38,7 @@ test('small plots keep their aspect ratio with two readable metric columns', () 
 });
 
 test('profile names, metadata and legend text cannot create SVG elements or attributes', () => {
-  const built = report({ title: '<script>alert("x")</script> & profile', metrics: summary.map(metric => ({ ...metric, detail: '" <image href="https://example.test/x"/> & data' })), legend: [{ label: '<img> & reference', color: '#fff" onload="bad' }] });
+  const built = report({ showDetails: true, showLegend: true, title: '<script>alert("x")</script> & profile', metrics: summary.map(metric => ({ ...metric, detail: '" <image href="https://example.test/x"/> & data' })), legend: [{ label: '<img> & reference', color: '#fff" onload="bad' }] });
   assert.ok(built.svg.includes('&lt;script&gt;'));
   assert.ok(built.svg.includes('&amp; profile'));
   assert.ok(!built.svg.includes('<script>'));
@@ -46,6 +46,16 @@ test('profile names, metadata and legend text cannot create SVG elements or attr
   assert.ok(built.svg.includes('#fff&quot; onload=&quot;bad'));
   for (const dimensions of [[0, 10], [10, Infinity], [-1, 100]]) assert.throws(() => report({ width: dimensions[0], height: dimensions[1] }), /dimensions/);
   assert.throws(() => report({ metrics: summary.slice(1) }), /four summary metrics/);
+});
+
+test('default images omit metric details, legend and branding without removing the numeric summaries', () => {
+  const built = report();
+  for (const value of ['921.569 N·s', '455.200 N', '3.500 s', '263.305 N']) assert.ok(built.svg.includes(value));
+  for (const absent of ['352 measurement points', 'at 2.500 s', '5% peak threshold', 'Impulse / 5% burn duration', 'Working', 'Theoretical', 'Thrust Lab Studio', 'Full profile metrics']) assert.ok(!built.svg.includes(absent), absent);
+  assert.ok(built.svg.includes('Time window: 1.000 — 4.500 s'));
+  const withDetails = report({ showDetails: true, showLegend: true });
+  assert.ok(!withDetails.svg.includes('Thrust Lab Studio'));
+  assert.ok(withDetails.height > built.height);
 });
 
 class SVGNode {

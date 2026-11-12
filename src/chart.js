@@ -309,6 +309,11 @@ export class ProfileChart {
     if (s.curveBase) content += `<path class="curve-base-path chart-transient" d="${path(s.curveBase)}"/>`;
     if (s.showTheory && s.theory) content += `<path class="theory-path" d="${path(s.theory)}"/>`;
     content += `<path fill="url(#curve-fill)" d="${path(s.points, true)}"/><path class="current-path" d="${path(s.points)}"/>`;
+    let peakPoint = s.points[0];
+    for (const point of s.points) if (point.thrust > peakPoint.thrust) peakPoint = point;
+    if (peakPoint.thrust > 0 && peakPoint.time >= start && peakPoint.time <= end && peakPoint.thrust >= this.yMin && peakPoint.thrust <= this.yMax) {
+      content += `<circle class="current-peak-marker" cx="${x(peakPoint.time)}" cy="${y(peakPoint.thrust)}" r="3" fill="#dc4444" stroke="#fff" stroke-width="1.25" aria-hidden="true"><title>Peak thrust</title></circle>`;
+    }
     if (s.selection) for (const t of s.selection) content += `<line class="selection-edge" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/><rect class="selection-handle chart-transient" x="${x(t) - 3}" y="${box.top}" width="6" height="16" rx="2"/>`;
     content += '<g class="chart-transient">';
     if (s.playhead >= start && s.playhead <= end) content += `<line class="cursor-line" x1="${x(s.playhead)}" y1="${box.top}" x2="${x(s.playhead)}" y2="${box.bottom}"/><path fill="#334155" d="M${x(s.playhead) - 5},${box.top - 7}h10l-5,7z"/>`;

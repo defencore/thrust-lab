@@ -16,6 +16,7 @@ export function createSettingsController(ctx) {
     ctx.fit.restorePreferences();
     ctx.retime.restorePreferences();
     ctx.grid.restorePreferences();
+    ctx.imageSettings.restorePreferences();
     ctx.shift.deactivate();
     $('#preferences-status').textContent = preferences.available ? 'Settings are saved automatically.' : 'Settings are kept for this session; browser storage is unavailable.';
     ctx.setInspector(saved.inspectorTab); ctx.setBottom(saved.editorTab);

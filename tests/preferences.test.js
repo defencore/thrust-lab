@@ -43,6 +43,16 @@ test('settings reset removes only the preferences key and preserves project and 
   assert.equal(storage.getItem('unrelated'), 'retained');
 });
 
+test('image presentation choices persist as booleans and reset to a clean report', () => {
+  const storage = memoryStorage(), preferences = createPreferences(storage);
+  assert.deepEqual(preferences.get().chartImage, { showDetails: false, showLegend: false });
+  preferences.update({ chartImage: { showDetails: true } });
+  preferences.update({ chartImage: { showLegend: true } });
+  assert.deepEqual(createPreferences(storage).get().chartImage, { showDetails: true, showLegend: true });
+  assert.deepEqual(preferences.update({ chartImage: { showDetails: 'false', showLegend: null, caption: 'unexpected' } }).chartImage, { showDetails: true, showLegend: true });
+  assert.deepEqual(preferences.reset().chartImage, { showDetails: false, showLegend: false });
+});
+
 test('custom exports retain one or two decimal places and validate the complete precision range', () => {
   const storage = memoryStorage();
   const preferences = createPreferences(storage);

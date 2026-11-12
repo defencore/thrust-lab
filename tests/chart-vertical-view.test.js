@@ -162,6 +162,37 @@ test('recordings without thrust have no burn-fit action and retain the existing 
   h.store.destroy();
 });
 
+test('the persistent red peak marker identifies the first measured maximum without changing samples', () => {
+  const points = [{ time: 0, thrust: 0 }, { time: 1, thrust: 40 }, { time: 2, thrust: 40 }, { time: 3, thrust: 20 }, { time: 4, thrust: 0 }];
+  const before = structuredClone(points), h = harness({ points, thrustView: [0, 50] }), original = h.store.get();
+  const markup = h.chart.svg.innerHTML;
+  const marker = markup.match(/<circle class="current-peak-marker" cx="([^"]+)" cy="([^"]+)"[^>]+>/);
+  assert.ok(marker);
+  close(Number(marker[1]), h.chart.box.left + h.chart.box.width / 4);
+  close(Number(marker[2]), h.chart.box.bottom - h.chart.box.height * .8);
+  assert.match(marker[0], /r="3" fill="#dc4444" stroke="#fff"/);
+  assert.doesNotMatch(marker[0], /chart-transient/);
+  assert.equal([...markup.matchAll(/class="current-peak-marker"/g)].length, 1);
+  assert.ok(markup.indexOf('class="current-path"') < markup.indexOf('class="current-peak-marker"'));
+  assert.ok(markup.indexOf('class="current-peak-marker"') < markup.indexOf('<g class="chart-transient">'));
+  assert.deepEqual(points, before);
+  assert.equal(h.store.get(), original); assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('a peak outside either visible axis and zero-thrust recordings never produce a clamped marker', () => {
+  const h = harness({ view: [0, 1.5], thrustView: [0, 100] });
+  assert.doesNotMatch(h.chart.svg.innerHTML, /current-peak-marker/);
+  h.update({ view: [0, 4], thrustView: [0, 50] });
+  assert.doesNotMatch(h.chart.svg.innerHTML, /current-peak-marker/);
+  h.update({ thrustView: [70, 100] });
+  assert.doesNotMatch(h.chart.svg.innerHTML, /current-peak-marker/);
+  h.update({ points: [{ time: 0, thrust: 0 }, { time: 4, thrust: 0 }], thrustView: null });
+  assert.doesNotMatch(h.chart.svg.innerHTML, /current-peak-marker/);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
 test('measurement markers and curve handles use the same shifted thrust mapping for hit testing', () => {
   const points = [{ time: 0, thrust: 20 }, { time: 1, thrust: 30 }, { time: 2, thrust: 60 }, { time: 3, thrust: 35 }, { time: 4, thrust: 20 }];
   const h = harness({ points, thrustView: [20, 60], tool: 'measure', measurement: { a: points[1], b: null, deltaTime: null, deltaThrust: null } });
