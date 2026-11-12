@@ -5,6 +5,7 @@ export function createChartController(ctx) {
   const { $, ui, store } = ctx;
   let selecting = false;
   return new ProfileChart($('#profile-chart'), $('#overview'), {
+    onTimeOrigin(origin) { ui.timeOriginSI = origin; },
     onView(view) { ui.view = view; ctx.render(); },
     onThrustView(view) { ui.thrustView = view; ctx.render(); },
     onCursor(time) {

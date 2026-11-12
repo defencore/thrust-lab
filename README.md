@@ -79,13 +79,15 @@ The thrust status shows **Auto** when the visible recording determines the verti
 
 Time readouts omit padded trailing zeros and adjust precision to the selected unit: for example, `3.5 s`, `3.49 s`, or `3495 ms`. Precise measurements remain available when switching units.
 
-**Fit burn region** frames the active profile's 5% peak burn window with a small margin and automatic thrust scaling, excluding long idle periods before and after the burn. It changes the view only and is unavailable for recordings without a measurable burn.
+**Fit burn region** frames the active profile's 5% peak burn window with a small margin and automatic thrust scaling, excluding long idle periods before and after the burn. The fitted region starts at zero on the chart clock, hover, rulers, and image export. Pan and zoom retain this origin; **Fit all axes** returns to recording time. Inspector editing coordinates and sample timestamps remain in recording time. The action changes the view only and is unavailable for recordings without a measurable burn.
 
 Zoom and pan are available in both workspaces and retain all recorded thrust values, timestamps, CSV data, and undo history. These view adjustments last for the current session.
 
 ## Chart detail and images
 
 Choose **Custom step** under **Thrust grid** to set the vertical grid interval in the current display unit. For example, select **kgf** in Display units and enter **25** for gridlines every 25 kgf. Grid spacing changes the view only. With **Auto height**, a detailed grid grows the chart to keep labels readable, up to 1200 px. **Compact**, **Medium**, **Large**, and **Tall** select a fixed height; closely spaced labels are thinned while gridlines remain visible. Zoom in when the view becomes too dense. Grid and height preferences are remembered and can be reset through Saved settings.
+
+**Time grid** toggles vertical gridlines independently of the time labels. Choose **Custom step** to enter an interval such as `1 s` or `0.5 s`; the same interval appears as `500 ms` after changing units. Gridlines align to the displayed clock, including the zero-based fitted burn view. Visibility and interval preferences are remembered and can be reset through Saved settings.
 
 The curve and its four metrics share one report panel. A small red dot marks the current profile's peak when it is inside the view. **Copy image** puts a PNG on the clipboard, and **Save PNG** downloads the same report. It includes the profile name, full-profile impulse/peak/burn duration/mean thrust, units, and the currently visible plot and time window, without an application caption. **Image settings** can add metric explanations and a legend for visible curves; both are off by default and remembered between sessions. Rulers and selected ranges remain visible; transient cursor and curve-edit handles are omitted. The image is rendered at twice the logical resolution, with a bounded canvas size, using local SVG and canvas APIs. No profile data is uploaded. Browsers that cannot copy PNG images show a message directing you to Save PNG.
 

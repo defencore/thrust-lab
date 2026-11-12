@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { ProfileChart } from '../src/chart.js';
 import { createProjectStore } from '../src/project-store.js';
 import { metrics } from '../src/profile.js';
+import { parseCSV, exportCSV } from '../src/csv.js';
 
 class Element {
   constructor(width = 800, height = 400) {
@@ -31,10 +32,11 @@ function harness(overrides = {}) {
   const points = [{ time: 0, thrust: 20 }, { time: 1, thrust: 40 }, { time: 2, thrust: 60 }, { time: 3, thrust: 35 }, { time: 4, thrust: 20 }];
   const store = createProjectStore({ name: 'Measured', points, original: structuredClone(points) }, { storage: null });
   let state = { ...store.get(), view: [0, 4], units: { time: 's', thrust: 'N', impulse: 'N·s' }, playhead: 0, tool: 'select', thrustView: null, ...overrides };
-  const calls = { time: [], thrust: [], draw: [], curve: [], measure: [], shiftStart: [], shiftMove: [], shiftEnd: [], selection: [], cursor: [], drawStart: 0 };
+  const calls = { time: [], timeOrigin: [], thrust: [], draw: [], curve: [], measure: [], shiftStart: [], shiftMove: [], shiftEnd: [], selection: [], cursor: [], drawStart: 0 };
   let chart;
   const callbacks = {
     onView(view) { calls.time.push([...view]); state = { ...state, view }; chart.setState(state); },
+    onTimeOrigin(timeOriginSI) { calls.timeOrigin.push(timeOriginSI); state = { ...state, timeOriginSI }; chart.setState(state); },
     onThrustView(view) { calls.thrust.push(view ? [...view] : null); state = { ...state, thrustView: view }; chart.setState(state); },
     onDrawStart() { calls.drawStart++; }, onDraw(coords) { calls.draw.push(coords); }, onDrawEnd() {},
     onCurveStart(coords) { calls.curve.push(coords); return coords.index; }, onCurveMove(coords) { calls.curve.push(coords); }, onCurveEnd() {},
@@ -67,6 +69,43 @@ test('hover time readouts trim padded decimals and convert units without groupin
   h.update({ units: { time: 'us', thrust: 'N', impulse: 'N·s' } });
   h.chart.svg.emit('pointermove', h.pointer(3.495, 30));
   assert.match(h.chart.tooltip.innerHTML, /<span>3495000 <small>µs<\/small>/);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('relative time labels and hover leave all editing coordinates absolute', () => {
+  const h = harness({ view: [1, 4], timeOriginSI: 1 });
+  const labels = [...h.chart.svg.innerHTML.matchAll(/class="axis-label time-axis-label"[^>]*>([^<]+)</g)].map(match => match[1]);
+  assert.equal(labels[0], '0');
+  assert.equal(labels.at(-1), '3');
+  h.chart.svg.emit('pointermove', h.pointer(3.5, 30));
+  assert.match(h.chart.tooltip.innerHTML, /<span>2\.5 <small>s<\/small>/);
+  close(h.chart.coords(h.pointer(3.5, 30)).time, 3.5);
+  h.chart.setView([0, 3]);
+  assert.equal(h.chart.state.timeOriginSI, 1);
+  assert.match(h.chart.svg.innerHTML, /class="axis-label time-axis-label"[^>]*>-1<\/text>/);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('time grid visibility and custom half-second lines leave labels and curve data intact', () => {
+  const h = harness({ timeGridStepSI: .5, units: { time: 'ms', thrust: 'N', impulse: 'N·s' } });
+  const before = h.store.get(), path = h.chart.svg.innerHTML.match(/<path class="current-path" d="([^"]+)"/)[1];
+  assert.equal([...h.chart.svg.innerHTML.matchAll(/class="grid-line vertical"/g)].length, 9);
+  assert.equal(h.chart.timeGridInfo.stepSI, .5);
+  const labels = [...h.chart.svg.innerHTML.matchAll(/class="axis-label time-axis-label"[^>]*>([^<]+)</g)].map(match => match[1]);
+  assert.deepEqual(labels, ['0', '500', '1000', '1500', '2000', '2500', '3000', '3500', '4000']);
+  h.update({ timeGridVisible: false });
+  assert.doesNotMatch(h.chart.svg.innerHTML, /class="grid-line vertical"/);
+  assert.equal([...h.chart.svg.innerHTML.matchAll(/class="axis-label time-axis-label"/g)].length, 9);
+  assert.equal(h.chart.svg.innerHTML.match(/<path class="current-path" d="([^"]+)"/)[1], path);
+  h.update({ view: [0, 1], timeGridStepSI: .125, units: { time: 's', thrust: 'N', impulse: 'N·s' } });
+  assert.match(h.chart.svg.innerHTML, /class="axis-label time-axis-label"[^>]*>0\.125<\/text>/);
+  h.update({ timeGridVisible: true, timeGridStepSI: .00001 });
+  assert.equal(h.chart.timeGridInfo.densityLimited, true);
+  assert.ok([...h.chart.svg.innerHTML.matchAll(/class="grid-line vertical"/g)].length <= 500);
+  assert.ok(h.chart.timeGridInfo.labelEvery > 1);
+  assert.equal(h.store.get(), before);
   assert.equal(h.store.status().undoCount, 0);
   h.store.destroy();
 });
@@ -140,11 +179,28 @@ test('fitting the burn region excludes long idle recordings and fits both view a
   const padding = measured.burnDuration * .04;
   close(h.chart.state.view[0], measured.burnStart - padding);
   close(h.chart.state.view[1], measured.burnEnd + padding);
+  close(h.chart.state.timeOriginSI, h.chart.state.view[0]);
+  assert.equal(h.calls.timeOrigin.length, 1);
+  assert.match(h.chart.svg.innerHTML, /class="axis-label time-axis-label"[^>]*>0<\/text>/);
   assert.equal(h.chart.state.thrustView, null);
   assert.ok(h.chart.effectiveThrustView()[1] >= measured.peak);
   assert.ok(h.chart.state.view[1] - h.chart.state.view[0] < 3);
   assert.deepEqual(points, before);
   assert.equal(h.store.get(), original);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('fitting an imported burn starts its displayed clock at zero and preserves original CSV timestamps', () => {
+  const source = 'time_ms;thrust\n0;0.0\n3000;0.0\n3100;25.0\n3500;100.0\n6000;80.0\n6500;0.0\n10000;0.0';
+  const imported = parseCSV(source), before = structuredClone(imported.points);
+  const h = harness({ points: imported.points, view: [0, 10] });
+  h.chart.fitBurnRegion();
+  assert.ok(h.chart.state.view[0] > 2.5 && h.chart.state.view[0] < 3.1);
+  assert.match(h.chart.svg.innerHTML, /class="axis-label time-axis-label"[^>]*>0<\/text>/);
+  close(h.chart.coords({ clientX: h.chart.box.left, clientY: h.chart.box.bottom }).time, h.chart.state.view[0]);
+  assert.deepEqual(imported.points, before);
+  assert.equal(exportCSV(imported.points, { csvFormat: imported.csvFormat, syntheticMarker: false }), source);
   assert.equal(h.store.status().undoCount, 0);
   h.store.destroy();
 });

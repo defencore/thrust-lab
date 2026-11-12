@@ -47,7 +47,7 @@ export function buildLayout({ name, presetCount, defaultPreset, catalogNotice, c
         ${renderAxisZoomControls()}
         ${renderChartReport()}
         ${measurementPanel()}
-        <div class="chart-bottom"><span class="timestamp-lock">${icon('lock')}Timestamps locked</span><span id="selection-summary">Full profile</span></div>
+        <div class="chart-bottom"><span class="timestamp-lock">${icon('lock')}Timestamps locked</span><span id="chart-time-basis">Recording time</span><span id="selection-summary">Full profile</span></div>
         <div class="timeline"><div class="timeline-label"><span>OVERVIEW</span><span id="view-label">0.00 — 1.70 s</span></div><div id="overview" class="overview" aria-label="Profile overview. Drag to pan the zoomed chart."></div><div class="timeline-footer"><span id="timeline-start">0.000 s</span><label>CURSOR <input id="cursor-time" type="number" step="0.001" aria-label="Cursor time"><span id="cursor-time-unit">s</span> <span class="cursor-value" id="cursor-thrust">0.00 N</span></label><span id="timeline-end">1.700 s</span></div></div>
       </div>
       ${generatorControls(defaultPreset)}

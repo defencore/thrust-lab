@@ -1,4 +1,5 @@
 import { icon, iconButton } from './icons.js';
+import { renderTimeGridControls } from './time-grid-controls.js';
 
 /** Independent axis controls change the view without changing profile measurements. */
 export function renderAxisZoomControls() {
@@ -17,5 +18,5 @@ export function renderAxisZoomControls() {
     <label class="chart-height-control">Chart height<select id="chart-height" aria-label="Chart height"><option value="auto">Auto height</option><option value="340">Compact</option><option value="520">Medium</option><option value="760">Large</option><option value="1000">Tall</option></select></label>
     <p id="thrust-grid-status" class="chart-grid-status" role="status"></p>
     <p id="thrust-grid-error" class="chart-grid-error" role="alert" hidden></p>
-  </div>`;
+  </div>${renderTimeGridControls()}`;
 }

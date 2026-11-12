@@ -25,6 +25,11 @@
 .chart-display-controls .chart-grid-status, .chart-display-controls .chart-grid-error { flex: 1 1 100%; margin: 0; font-size: 12px; line-height: 1.6; }
 .chart-grid-status { color: #74899e; }
 .chart-grid-error { color: #a35837; }
+.time-grid-controls .time-grid-toggle { flex: 1 1 130px; flex-direction: row; align-items: center; gap: 8px; min-height: 35px; cursor: pointer; }
+.time-grid-toggle input { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; margin: 0; }
+.time-grid-mode { flex: 1 1 130px; }
+.time-grid-step { flex: 1 1 115px; }
+.time-grid-controls select:disabled { background: #f3f6f9; color: #8a9caf; }
 @media (max-width: 1250px) { .axis-zoom-help { display: none; } .axis-zoom-controls { gap: 5px 8px; } .thrust-zoom-group { padding-left: 8px; } }
 @media (max-width: 760px) {
   .axis-zoom-controls { padding: 6px 9px; gap: 5px 8px; }
@@ -47,4 +52,6 @@
   .chart-display-controls { gap: 9px; padding: 10px; }
   .chart-grid-mode, .chart-grid-step { flex: 1 1 calc(50% - 5px); }
   .chart-height-control { flex: 1 1 100%; }
+  .time-grid-controls .time-grid-toggle { flex-basis: 100%; }
+  .time-grid-mode, .time-grid-step { flex: 1 1 calc(50% - 5px); }
 }

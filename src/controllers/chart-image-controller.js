@@ -1,5 +1,6 @@
 import { captureChartSVG, buildChartImageSVG, renderChartPNG, downloadChartPNG } from '../chart-image.js';
 import { t } from '../i18n.js';
+import { relativeTime } from '../time-axis.js';
 
 const text = node => node?.textContent?.trim() || '';
 
@@ -25,7 +26,8 @@ export function chartImageModel(ctx, { getStyle = globalThis.getComputedStyle } 
     const swatch = item.querySelector('i'), style = getStyle(swatch);
     return { label: text(item), color: style.borderTopColor, dashed: style.borderTopStyle === 'dashed' };
   });
-  const footer = `${showDetails ? `${t('Full profile metrics')} · ` : ''}${t('Time window')}: ${units.format(ui.view[0], 'time', 3)} — ${units.format(ui.view[1], 'time', 3)} ${units.symbol('time')}`;
+  const timeLabel = ui.timeOriginSI == null ? 'Time window' : 'Time from fitted region start';
+  const footer = `${showDetails ? `${t('Full profile metrics')} · ` : ''}${t(timeLabel)}: ${units.format(relativeTime(ui.view[0], ui.timeOriginSI), 'time', 3)} — ${units.format(relativeTime(ui.view[1], ui.timeOriginSI), 'time', 3)} ${units.symbol('time')}`;
   return { title: text($('#chart-name')), metrics, legend, footer, showDetails, showLegend };
 }
 

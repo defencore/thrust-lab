@@ -117,7 +117,7 @@ export function inspectorControls() {
   return `<aside class="inspector panel">
     <div class="panel-heading"><h2>Inspector</h2>${icon('sliders')}</div>
     <div class="scope-switch" role="group" aria-label="Edit scope"><button id="scope-all" class="active">Entire profile</button><button id="scope-selection">Selection <span id="selection-dot"></span></button></div>
-    <div class="selection-fields"><label>IN <span class="input-unit"><input id="range-start" type="number" step="0.001" aria-label="Selection start"><span>s</span></span></label><label>OUT <span class="input-unit"><input id="range-end" type="number" step="0.001" aria-label="Selection end"><span>s</span></span></label></div>
+    <div class="selection-fields" title="Recording time"><label>IN <span class="input-unit"><input id="range-start" type="number" step="0.001" aria-label="Selection start"><span>s</span></span></label><label>OUT <span class="input-unit"><input id="range-end" type="number" step="0.001" aria-label="Selection end"><span>s</span></span></label></div>
     <div class="range-actions"><span id="scope-stats"></span></div>
     <div class="inspector-tabs" role="tablist" aria-label="Inspector tools"><button data-inspector="transform" role="tab" aria-selected="true" class="active">Transform</button><button data-inspector="curve" role="tab" aria-selected="false">Curve</button><button data-inspector="signal" role="tab" aria-selected="false">Signal</button><button data-inspector="theory" role="tab" aria-selected="false">Theory</button></div>
     <p id="inspector-error" class="inspector-error" role="alert" hidden></p>

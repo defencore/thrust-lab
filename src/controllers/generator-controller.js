@@ -40,7 +40,7 @@ export function createGeneratorController(ctx) {
       preferences.update({ generator: settings });
       $('#generation-notes').textContent = generated.notes.join(' ');
       $('#generation-notes').hidden = !generated.notes.length;
-      if (ui.mode === 'create') { ui.view = [...draft.view]; ui.thrustView = null; ui.playhead = draft.playhead; }
+      if (ui.mode === 'create') { ui.view = [...draft.view]; ui.timeOriginSI = null; ui.thrustView = null; ui.playhead = draft.playhead; }
     } catch (error) {
       valid = false;
       $('#generation-notes').textContent = error.message; $('#generation-notes').hidden = false;

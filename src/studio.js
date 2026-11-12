@@ -20,6 +20,7 @@ import { createProfileRetimeController } from './controllers/profile-retime-cont
 import { createSettingsController } from './controllers/settings-controller.js';
 import { createChartController } from './controllers/chart-controller.js';
 import { createChartGridController } from './controllers/chart-grid-controller.js';
+import { createTimeGridController } from './controllers/time-grid-controller.js';
 import { createChartImageController } from './controllers/chart-image-controller.js';
 import { createChartImageSettingsController } from './controllers/chart-image-settings-controller.js';
 import { createMeasurementController } from './controllers/measurement-controller.js';
@@ -39,6 +40,7 @@ export function createStudio() {
   let toastTimer;
   let editorView = [...ui.view], editorCursor = ui.playhead;
   let editorThrustView = null;
+  let editorTimeOriginSI = null;
   const ctx = {
     $, $$, store, preferences, ui, effects,
     render() { view?.render(); },
@@ -55,7 +57,7 @@ export function createStudio() {
       if (id !== 'theory-fit') ctx.fit?.deactivate();
       if (id !== 'shift') ctx.shift?.deactivate();
       if (['adopt', 'open', 'import', 'mode'].includes(id)) ctx.measurement?.clear();
-      if (['adopt', 'open', 'import'].includes(id)) { ui.thrustView = null; editorThrustView = null; }
+      if (['adopt', 'open', 'import'].includes(id)) { ui.thrustView = null; editorThrustView = null; ui.timeOriginSI = null; editorTimeOriginSI = null; }
       ctx.signal?.reset();
       if (id !== 'curve') ctx.curve?.deactivate();
       ui.selectedSample = null; $('#inspector-error').hidden = true;
@@ -70,7 +72,7 @@ export function createStudio() {
     clearSelection() { clearChartSelection(ctx); },
     fitView() {
       ctx.chart?.cancelDrag();
-      const profile = ctx.activeProfile(); ui.view = [profile.points[0].time, profile.points.at(-1).time]; ui.thrustView = null; ui.playhead = clamp(ui.playhead, ...ui.view); ctx.render();
+      const profile = ctx.activeProfile(); ui.view = [profile.points[0].time, profile.points.at(-1).time]; ui.timeOriginSI = null; ui.thrustView = null; ui.playhead = clamp(ui.playhead, ...ui.view); ctx.render();
     },
     setTool(tool) {
       if (ui.mode !== 'edit' && !['measure', 'pan'].includes(tool)) return;
@@ -98,8 +100,8 @@ export function createStudio() {
       if (mode !== ui.mode) {
         ctx.chart?.cancelDrag();
         ctx.beforeEdit('mode');
-        if (mode === 'create') { editorView = [...ui.view]; editorCursor = ui.playhead; editorThrustView = ui.thrustView ? [...ui.thrustView] : null; ui.view = [...ctx.generator.getDraft().view]; ui.thrustView = null; ui.playhead = ctx.generator.getDraft().playhead; }
-        else { const points = store.get().points; const start = points[0].time, end = points.at(-1).time; const length = Math.min(editorView[1] - editorView[0], end - start); const left = clamp(editorView[0], start, end - length); ui.view = [left, left + length]; ui.thrustView = editorThrustView ? [...editorThrustView] : null; ui.playhead = clamp(editorCursor, start, end); }
+        if (mode === 'create') { editorView = [...ui.view]; editorCursor = ui.playhead; editorThrustView = ui.thrustView ? [...ui.thrustView] : null; editorTimeOriginSI = ui.timeOriginSI; ui.view = [...ctx.generator.getDraft().view]; ui.timeOriginSI = null; ui.thrustView = null; ui.playhead = ctx.generator.getDraft().playhead; }
+        else { const points = store.get().points; const start = points[0].time, end = points.at(-1).time; const length = Math.min(editorView[1] - editorView[0], end - start); const left = clamp(editorView[0], start, end - length); ui.view = [left, left + length]; ui.timeOriginSI = editorTimeOriginSI; ui.thrustView = editorThrustView ? [...editorThrustView] : null; ui.playhead = clamp(editorCursor, start, end); }
       }
       ui.mode = mode; document.body.dataset.workspace = mode;
       $('#mode-edit').setAttribute('aria-selected', String(mode === 'edit')); $('#mode-create').setAttribute('aria-selected', String(mode === 'create'));
@@ -115,7 +117,7 @@ export function createStudio() {
     },
     chartState() {
       const profile = ctx.activeProfile();
-      return { ...profile, ...ctx.grid.getState(), units: ctx.units.get(), thrustView: ui.thrustView, theory: ui.mode === 'edit' && ctx.fit.chartReference() || alignTheory(profile.theory, profile.points, profile.theoryAlignment), ...(ui.mode === 'edit' ? ctx.curve.chartState() : {}), measurement: ctx.measurement.chartState(), selectedSample: ui.selectedSample, feather: ui.mode === 'edit' && ctx.getRange() ? Number($('#edit-feather').value || 0) / 100 : 0 };
+      return { ...profile, ...ctx.grid.getState(), ...ctx.timeGrid.getState(), units: ctx.units.get(), timeOriginSI: ui.timeOriginSI, thrustView: ui.thrustView, theory: ui.mode === 'edit' && ctx.fit.chartReference() || alignTheory(profile.theory, profile.points, profile.theoryAlignment), ...(ui.mode === 'edit' ? ctx.curve.chartState() : {}), measurement: ctx.measurement.chartState(), selectedSample: ui.selectedSample, feather: ui.mode === 'edit' && ctx.getRange() ? Number($('#edit-feather').value || 0) / 100 : 0 };
     },
   };
   ctx.units = createUnitsController({ $, preferences, onChange() { ctx.generator?.presets($('#preset-search').value); ctx.samples?.render({ force: true }); ctx.render(); }, onError: ctx.error });
@@ -131,6 +133,7 @@ export function createStudio() {
   ctx.theory = createTheoryController(ctx);
   ctx.chart = createChartController(ctx);
   ctx.grid = createChartGridController(ctx);
+  ctx.timeGrid = createTimeGridController(ctx);
   ctx.imageSettings = createChartImageSettingsController(ctx);
   ctx.image = createChartImageController(ctx);
   ctx.analyzer = createAnalyzerController(ctx);
@@ -143,7 +146,7 @@ export function createStudio() {
     if (event.type === 'saved') { view.savedStatus(); return; }
     if (['undo', 'redo', 'cancel'].includes(event.type)) { ctx.retime.deactivate(); ctx.fit.deactivate(); ctx.shift.deactivate(); ctx.signal.reset(); }
     const points = ctx.activeProfile().points, start = points[0].time, end = points.at(-1).time;
-    if (ui.view[0] < start || ui.view[1] > end || ui.view[0] >= ui.view[1]) ui.view = [start, end];
+    if (ui.view[0] < start || ui.view[1] > end || ui.view[0] >= ui.view[1]) { ui.view = [start, end]; ui.timeOriginSI = null; }
     ui.playhead = clamp(ui.playhead, start, end);
     ctx.render();
   });

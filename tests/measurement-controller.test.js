@@ -168,3 +168,57 @@ test('incomplete input preserves markers and clearing rulers leaves the edit sel
   assert.equal(h.errors.length, 0);
   h.store.destroy();
 });
+
+test('relative ruler fields convert units before restoring the fixed canonical time origin', () => {
+  const h = harness();
+  const before = h.store.get();
+  const source = [{ time: 12, thrust: 0 }, { time: 12.25, thrust: 10 }, { time: 12.5, thrust: 20 }, { time: 13, thrust: 0 }];
+  h.ui.timeOriginSI = 12;
+  h.setProfile(source);
+  click(h, 12.25); click(h, 13);
+  const a = h.elements.get('#measure-time-a'), b = h.elements.get('#measure-time-b');
+  assert.equal(a.value, '0.25');
+  assert.equal(b.value, '1');
+  assert.equal(h.elements.get('#measure-delta-time').textContent, '0.75 s');
+  h.setUnits(1000, 1);
+  assert.equal(a.value, '250');
+  assert.equal(b.value, '1000');
+  a.input(490);
+  assert.deepEqual(h.ui.measurementTimes, [12.5, 13]);
+  assert.equal(a.value, '490');
+  a.blur();
+  assert.equal(a.value, '500');
+  assert.equal(h.elements.get('#measure-delta-time').textContent, '500 ms');
+  b.input(-20); b.blur();
+  assert.deepEqual(h.ui.measurementTimes, [12.5, 12]);
+  assert.equal(b.value, '0');
+  assert.equal(h.elements.get('#measure-delta-time').textContent, '-500 ms');
+  h.ui.timeOriginSI = null;
+  h.controller.render();
+  assert.equal(a.value, '12500');
+  assert.equal(b.value, '12000');
+  assert.equal(h.store.get(), before);
+  assert.equal(h.store.status().undoCount, 0);
+  assert.deepEqual(source.map(point => point.time), [12, 12.25, 12.5, 13]);
+  assert.equal(h.errors.length, 0);
+  h.store.destroy();
+});
+
+test('invalid relative ruler input or overflowing origin addition preserves canonical markers', () => {
+  const h = harness();
+  click(h, .1); click(h, .8);
+  const a = h.elements.get('#measure-time-a');
+  for (const [origin, value] of [[0, 'Infinity'], [Infinity, 1], [Number.MAX_VALUE, Number.MAX_VALUE], [-Number.MAX_VALUE, -Number.MAX_VALUE]]) {
+    h.ui.timeOriginSI = origin;
+    a.input(value);
+    assert.equal(a.attributes.get('aria-invalid'), 'true');
+    assert.deepEqual(h.ui.measurementTimes, [.1, .8]);
+  }
+  h.ui.timeOriginSI = null;
+  a.blur();
+  assert.equal(a.value, '0.1');
+  assert.equal(a.attributes.get('aria-invalid'), 'false');
+  assert.equal(h.store.status().undoCount, 0);
+  assert.equal(h.errors.length, 0);
+  h.store.destroy();
+});

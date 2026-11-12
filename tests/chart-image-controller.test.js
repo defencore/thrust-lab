@@ -98,6 +98,17 @@ test('image model hides details and legend by default while retaining metric val
   assert.ok(enabled.footer.startsWith('Full profile metrics · Time window:'));
 });
 
+test('fitted-region images use the same zero-based time labels as the plot without retiming the view', () => {
+  const f = reportFixture();
+  f.ctx.ui.timeOriginSI = 1;
+  assert.equal(chartImageModel(f.ctx, f).footer, 'Time from fitted region start: 0.000 — 3.500 s');
+  assert.deepEqual(f.ctx.ui.view, [1, 4.5]);
+  f.ctx.ui.view = [2, 3];
+  assert.equal(chartImageModel(f.ctx, f).footer, 'Time from fitted region start: 1.000 — 2.000 s');
+  f.ctx.ui.timeOriginSI = null;
+  assert.equal(chartImageModel(f.ctx, f).footer, 'Time window: 2.000 — 3.000 s');
+});
+
 test('enabled image legend follows actual profile layers and computed DOM visibility', () => {
   const f = reportFixture({ showLegend: true });
   f.profile.showTheory = false; f.profile.showOriginal = false;

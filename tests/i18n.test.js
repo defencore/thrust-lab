@@ -55,6 +55,26 @@ test('custom thrust grid and height controls explain density limits in either la
   }
 });
 
+test('time grid controls and relative recording time remain bilingual and reversible', () => {
+  for (const [english, ukrainian] of [
+    ['Time grid controls', 'Налаштування сітки часу'],
+    ['Time grid', 'Сітка часу'],
+    ['Spacing', 'Інтервал'],
+    ['Time grid mode', 'Режим сітки часу'],
+    ['Time grid step', 'Крок сітки часу'],
+    ['Zoom in or widen the chart to show more time labels.', 'Збільште масштаб або ширину графіка, щоб показати більше часових підписів.'],
+    ['Time from fitted region start', 'Час від початку підігнаної ділянки'],
+    ['Recording time', 'Час запису'],
+    ['Time labels need finite timestamps and a finite origin.', 'Для часових підписів потрібні скінченні часові мітки та скінченний початок відліку.'],
+    ['The relative time is outside the supported numeric range.', 'Відносний час виходить за підтримувані числові межі.'],
+    ['Time view needs a finite minimum below its maximum.', 'Часовий діапазон має містити скінченну нижню межу, меншу за верхню.'],
+    ['Time axis width must be finite and greater than zero.', 'Ширина часової осі має бути скінченною та більшою за нуль.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+});
+
 test('duration matching explains impulse preservation, automatic peak and fixed-grid limits in both languages', () => {
   for (const [english, ukrainian] of [
     ['Burn duration and output', 'Тривалість горіння та тяга'],

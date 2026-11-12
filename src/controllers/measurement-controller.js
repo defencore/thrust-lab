@@ -1,4 +1,5 @@
 import { measurementAt, measureProfile } from '../measurement.js';
+import { relativeTime } from '../time-axis.js';
 
 /** Keep chart rulers in UI state without changing the working profile or its history. */
 export function createMeasurementController(ctx) {
@@ -88,7 +89,7 @@ export function createMeasurementController(ctx) {
       const field = input(index);
       field.disabled = index === 1 && !state.a;
       if (!focused(field)) {
-        if (marker) units.set(`measure-time-${index === 0 ? 'a' : 'b'}`, marker.time, { precision: 15 });
+        if (marker) units.set(`measure-time-${index === 0 ? 'a' : 'b'}`, relativeTime(marker.time, ui.timeOriginSI), { precision: 15 });
         else field.value = '';
         valid(field, true);
       }
@@ -101,10 +102,13 @@ export function createMeasurementController(ctx) {
       if (index === 1 && !ui.measurementTimes.length) return;
       try {
         const value = field.value.trim() ? units.read(`measure-time-${index === 0 ? 'a' : 'b'}`) : NaN;
-        valid(field, Number.isFinite(value));
-        if (!Number.isFinite(value)) return;
+        const origin = ui.timeOriginSI ?? 0;
+        const absoluteTime = value + origin;
+        const finite = Number.isFinite(value) && Number.isFinite(origin) && Number.isFinite(absoluteTime);
+        valid(field, finite);
+        if (!finite) return;
         gesture = null;
-        const time = snap(value);
+        const time = snap(absoluteTime);
         if (index === 0 && !ui.measurementTimes.length) ui.measurementTimes = [time];
         else ui.measurementTimes[index] = time;
         refresh();

@@ -3,6 +3,7 @@ import { visibleEnvelope } from './chart-data.js';
 import { toDisplay, unitSymbol, displayNumber, formatTime } from './units.js';
 import { renderMeasurements } from './chart-measurements.js';
 import { defaultThrustView, axisTicks, zoomVerticalView, panVerticalView } from './vertical-view.js';
+import { relativeTime, timeTicks } from './time-axis.js';
 
 const svgNS = 'http://www.w3.org/2000/svg';
 const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
@@ -105,7 +106,9 @@ export class ProfileChart {
     const burn = this.burnRegion();
     if (!burn) return false;
     const padding = burn.burnDuration * .04;
-    this.setView([Math.max(burn.start, burn.burnStart - padding), Math.min(burn.end, burn.burnEnd + padding)]);
+    const view = [Math.max(burn.start, burn.burnStart - padding), Math.min(burn.end, burn.burnEnd + padding)];
+    this.callbacks.onTimeOrigin(view[0]);
+    this.setView(view);
     this.setThrustView(null);
     return true;
   }
@@ -187,7 +190,7 @@ export class ProfileChart {
       this.tooltip.hidden = false;
       this.tooltip.style.left = `${Math.min(c.x + 15, this.container.clientWidth - 150)}px`;
       this.tooltip.style.top = `${Math.max(4, c.y - 60)}px`;
-      this.tooltip.innerHTML = `<span>${formatTime(c.time, this.state.units, { digits: 4 })} <small>${unitSymbol('time', this.state.units)}</small></span><strong>${displayNumber(toDisplay(interpolate(this.state.points, c.time), 'thrust', this.state.units), { digits: 3 })} <small>${unitSymbol('thrust', this.state.units)}</small></strong>`;
+      this.tooltip.innerHTML = `<span>${formatTime(relativeTime(c.time, this.state.timeOriginSI), this.state.units, { digits: 4 })} <small>${unitSymbol('time', this.state.units)}</small></span><strong>${displayNumber(toDisplay(interpolate(this.state.points, c.time), 'thrust', this.state.units), { digits: 3 })} <small>${unitSymbol('thrust', this.state.units)}</small></strong>`;
       this.draw();
     }
   }
@@ -283,11 +286,13 @@ export class ProfileChart {
       content += `<line class="grid-line" x1="${box.left}" y1="${y(value)}" x2="${box.right}" y2="${y(value)}"/>`;
       if (index % labelEvery === 0) content += `<text class="axis-label" x="${box.left - 13}" y="${y(value) + 4}" text-anchor="end">${number(toDisplay(value, 'thrust', s.units), thrustTicks.precision)}</text>`;
     }
-    const xTicks = width < 520 ? 5 : 8;
-    const timePrecision = Math.max(0, Math.min(12, Math.ceil(-Math.log10(toDisplay(end - start, 'time', s.units) / xTicks)) + 1));
-    for (let i = 0; i <= xTicks; i++) {
-      const t = start + (end - start) * i / xTicks;
-      content += `<line class="grid-line vertical" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/><text class="axis-label" x="${x(t)}" y="${box.bottom + 23}" text-anchor="middle">${number(toDisplay(t, 'time', s.units), timePrecision)}</text>`;
+    const ticks = timeTicks(s.view, { originSI: s.timeOriginSI, stepSI: s.timeGridStepSI ?? null, count: width < 520 ? 5 : 8, width: box.width, strict: false });
+    this.timeGridInfo = ticks;
+    const timeStepDisplay = toDisplay(ticks.stepSI, 'time', s.units);
+    const timePrecision = Math.max(0, Math.min(12, ticks.custom ? 6 - Math.floor(Math.log10(timeStepDisplay)) : Math.ceil(-Math.log10(timeStepDisplay)) + 1));
+    for (const [index, t] of ticks.valuesSI.entries()) {
+      if (s.timeGridVisible !== false) content += `<line class="grid-line vertical" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/>`;
+      if (index % ticks.labelEvery === 0) content += `<text class="axis-label time-axis-label" x="${x(t)}" y="${box.bottom + 23}" text-anchor="middle">${number(toDisplay(relativeTime(t, s.timeOriginSI), 'time', s.units), timePrecision)}</text>`;
     }
     content += `<text class="axis-title" x="20" y="16">THRUST / ${unitSymbol('thrust', s.units)}</text><text class="axis-title" x="${box.right}" y="${height - 2}" text-anchor="end">TIME / ${unitSymbol('time', s.units)}</text><g clip-path="url(#plot-clip)">`;
     if (s.selection) {
@@ -333,7 +338,7 @@ export class ProfileChart {
       content += `<circle class="curve-node-halo" cx="${x(sample.time)}" cy="${y(sample.thrust)}" r="14"/><circle class="curve-control-node selected" cx="${x(sample.time)}" cy="${y(sample.thrust)}" r="7"/>`;
     }
     content += '</g>';
-    content += renderMeasurements({ measurement: s.measurement, x, y, box, units: s.units });
+    content += renderMeasurements({ measurement: s.measurement, x, y, box, units: s.units, timeOriginSI: s.timeOriginSI });
     content += `</g><rect class="thrust-axis-hit" x="0" y="${box.top}" width="${box.left - 4}" height="${box.height}" fill="transparent" style="cursor:ns-resize"><title>Drag to zoom thrust · Double-click to reset</title></rect>`;
     this.svg.innerHTML = content;
     this.container.dataset.tool = s.tool;

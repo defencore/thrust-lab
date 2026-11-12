@@ -1,4 +1,5 @@
 import { toDisplay, unitSymbol, displayNumber, formatTime } from './units.js';
+import { relativeTime } from './time-axis.js';
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 const coordinate = value => Number(value.toFixed(2));
@@ -6,7 +7,7 @@ const colors = ['#168b88', '#8766b3'];
 const textWidth = text => text.length * 7;
 
 /** Render measuring cursors as SVG without modifying chart or recording state. */
-export function renderMeasurements({ measurement, x, y, box, units }) {
+export function renderMeasurements({ measurement, x, y, box, units, timeOriginSI = 0 }) {
   if (!measurement?.a) return '';
   const format = (value, dimension, signed = false) => `${signed && value > 0 ? '+' : ''}${dimension === 'time' ? formatTime(value, units) : displayNumber(toDisplay(value, dimension, units), { digits: 3 })} ${unitSymbol(dimension, units)}`;
   const width = Math.max(1, box.right - box.left);
@@ -25,7 +26,7 @@ export function renderMeasurements({ measurement, x, y, box, units }) {
   for (const marker of markers) {
     const { px, py, index, color, point } = marker;
     markup += `<g pointer-events="none" stroke="${color}" stroke-width="1" stroke-dasharray="4 4" opacity=".7"><path d="M${coordinate(px)},${coordinate(box.top)}V${coordinate(box.bottom)}M${coordinate(box.left)},${coordinate(py)}H${coordinate(box.right)}"/></g>`;
-    const text = `${index ? 'B' : 'A'} ${format(point.time, 'time')} · ${format(point.thrust, 'thrust')}`;
+    const text = `${index ? 'B' : 'A'} ${format(relativeTime(point.time, timeOriginSI), 'time')} · ${format(point.thrust, 'thrust')}`;
     let label = badge(text, px + 12, py + (index ? 19 : -35), color);
     if (badges.some(other => label.left < other.left + other.width && label.left + label.width > other.left && label.top < other.top + other.height + 4 && label.top + label.height + 4 > other.top)) label = badge(text, px + 12, badges[0].top + (badges[0].top + 56 < box.bottom ? 30 : -30), color);
     badges.push(label);

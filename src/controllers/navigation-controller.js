@@ -22,7 +22,7 @@ export function bindNavigation(ctx) {
     if (valid) ctx.edit('Select time range', project => { project.selection = [start, end]; project.scope = 'selection'; }, { key: 'selection' });
   };
   $('#cursor-time').oninput = () => {
-    const profile = ctx.activeProfile(), time = units.read('cursor-time');
+    const profile = ctx.activeProfile(), time = units.read('cursor-time') + (ui.timeOriginSI ?? 0);
     if (!Number.isFinite(time)) return;
     ui.playhead = clamp(time, profile.points[0].time, profile.points.at(-1).time); ctx.render();
   };

@@ -259,6 +259,22 @@ test('chart grid choices retain canonical spacing and validated height while res
   assert.equal(storage.getItem('thrust-lab-project-v1'), 'preserve recording');
 });
 
+test('time grid preferences retain visibility and canonical spacing without resetting other settings or recordings', () => {
+  const storage = memoryStorage({ 'thrust-lab-project-v1': 'preserve recording', 'thrust-lab-language': 'uk' });
+  const preferences = createPreferences(storage);
+  assert.deepEqual(preferences.get().timeGrid, { visible: true, mode: 'auto', stepSI: .5 });
+  preferences.update({ chartGrid: { height: 760 }, timeGrid: { visible: false, mode: 'custom', stepSI: .125 } });
+  const restored = createPreferences(storage), expected = { visible: false, mode: 'custom', stepSI: .125 };
+  assert.deepEqual(restored.get().timeGrid, expected);
+  assert.equal(restored.get().chartGrid.height, 760);
+  for (const patch of [{ visible: 'true' }, { visible: null }, { mode: 'dense' }, { stepSI: 0 }, { stepSI: -1 }, { stepSI: Infinity }, { stepSI: '' }]) assert.deepEqual(restored.update({ timeGrid: patch }).timeGrid, expected);
+  restored.update({ timeGrid: { visible: true } });
+  assert.deepEqual(restored.get().timeGrid, { ...expected, visible: true });
+  assert.deepEqual(restored.reset().timeGrid, { visible: true, mode: 'auto', stepSI: .5 });
+  assert.equal(storage.getItem('thrust-lab-project-v1'), 'preserve recording');
+  assert.equal(storage.getItem('thrust-lab-language'), 'uk');
+});
+
 test('duration matching remembers target modes without replaying absolute targets on another recording', () => {
   const storage = memoryStorage();
   const preferences = createPreferences(storage);

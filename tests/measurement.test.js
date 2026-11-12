@@ -88,6 +88,15 @@ test('the SVG overlay displays both marker coordinates and signed differences in
   assert.doesNotMatch(markup, /NaN|Infinity|undefined/);
 });
 
+test('relative ruler coordinates share the chart clock while elapsed time retains its original difference', () => {
+  const measurement = measureProfile(profile(), [.1, .8]), before = structuredClone(measurement);
+  const markup = renderMeasurements({ measurement, x: time => 70 + time * 200, y: thrust => 250 - thrust * 8, box: { left: 60, right: 460, top: 25, bottom: 260 }, units: { time: 'ms', thrust: 'kN' }, timeOriginSI: .1 });
+  assert.match(markup, /A 0 ms ·/);
+  assert.match(markup, /B 700 ms ·/);
+  assert.match(markup, /Δt \+700 ms/);
+  assert.deepEqual(measurement, before);
+});
+
 test('coincident marker labels use different positions and stay inside the plot', () => {
   const markup = renderer(measureProfile(profile(), [.1, .1]));
   const rectangles = [...markup.matchAll(/<rect x="([\d.-]+)" y="([\d.-]+)" width="([\d.-]+)" height="([\d.-]+)"/g)].map(([, left, top, width, height]) => ({ left: Number(left), top: Number(top), width: Number(width), height: Number(height) }));

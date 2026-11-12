@@ -18,7 +18,7 @@
 .profile-chart[data-tool="pan"]:active { cursor: grabbing; }
 .profile-svg { width: 100%; height: 100%; display: block; user-select: none; overflow: visible; }
 .grid-line { stroke: #e9edf2; stroke-width: 1; }
-.grid-line.vertical { stroke: #eff2f5; stroke-dasharray: 2 4; }
+.grid-line.vertical { stroke: #ccd7e3; stroke-dasharray: 3 4; }
 .axis-label { fill: #99a4b1; font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; }
 .axis-title { fill: #9aa4b1; font-size: 12px; font-weight: 500; letter-spacing: .6px; }
 .current-path { stroke: #3978b8; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
@@ -41,7 +41,7 @@
 .chart-tooltip span { color: #b1c0cf; font-size: 12px; }
 .chart-tooltip strong { font-weight: 500; }
 .chart-tooltip small { font-size: 12px; opacity: .6; }
-.chart-bottom { display: flex; align-items: center; gap: 10px; padding: 5px 23px 13px; font-size: 12px; color: #94a0ae; min-height: 29px; }
+.chart-bottom { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 5px 23px 13px; font-size: 12px; color: #94a0ae; min-height: 29px; }
 .timestamp-lock { display: flex; align-items: center; gap: 5px; color: #8092a5; }
 .timestamp-lock .icon { width: 10px; height: 10px; }
 #selection-summary { margin-left: auto; font-size: 12px; }

@@ -3,10 +3,12 @@ import { theoryShift } from '../alignment.js';
 import { toDisplay } from '../units.js';
 import { escape } from './dom.js';
 import { icon } from './icons.js';
+import { relativeTime } from '../time-axis.js';
 
 /** Render project facts independently of editing commands and numerical methods. */
 export function createStudioView(ctx) {
   const { $, $$, ui, store, units } = ctx;
+  const time = value => relativeTime(value, ui.timeOriginSI);
   function savedStatus() {
     const status = store.status();
     $('#save-status').textContent = { saved: 'Saved in this browser', pending: 'Saving changes…', unavailable: 'Export to keep your work · storage unavailable' }[status.saveStatus];
@@ -24,7 +26,7 @@ export function createStudioView(ctx) {
     $('#selection-dot').hidden = !p.selection;
     $('#clear-selection').hidden = false;
     $('#clear-selection').disabled = !(ui.mode === 'edit' && (p.selection || ctx.curve.isActive || ui.selectedSample != null)) && !ui.measurementTimes?.length;
-    $('#selection-summary').textContent = ui.mode === 'create' ? 'This preview is separate from your working profile.' : p.selection ? `${units.format(p.selection[0], 'time', 3)} — ${units.format(p.selection[1], 'time', 3)} ${units.symbol('time')} · ${units.format(p.selection[1] - p.selection[0], 'time', 3)} ${units.symbol('time')} selected` : 'Full profile';
+    $('#selection-summary').textContent = ui.mode === 'create' ? 'This preview is separate from your working profile.' : p.selection ? `${units.format(time(p.selection[0]), 'time', 3)} — ${units.format(time(p.selection[1]), 'time', 3)} ${units.symbol('time')} · ${units.format(p.selection[1] - p.selection[0], 'time', 3)} ${units.symbol('time')} selected` : 'Full profile';
     $('.timestamp-lock').hidden = ui.mode === 'create';
     const bounds = p.selection || [p.points[0].time, p.points.at(-1).time];
     units.set('range-start', bounds[0]); units.set('range-end', bounds[1]);
@@ -49,7 +51,7 @@ export function createStudioView(ctx) {
     for (const [id, key, dimension, digits] of [['impulse', 'impulse', 'impulse', 2], ['peak', 'peak', 'thrust', 2], ['burn', 'burnDuration', 'time', 3], ['average', 'burnAverage', 'thrust', 2]]) $(`#metric-${id}`).textContent = units.format(m[key], dimension, digits);
     $('#metric-class').textContent = `${m.samples.toLocaleString('en-US')} measurement points`;
     const peak = profile.points.reduce((a, b) => a.thrust >= b.thrust ? a : b);
-    $('#metric-peak-time').textContent = `at ${units.format(peak.time, 'time', 3)} ${units.symbol('time')}`;
+    $('#metric-peak-time').textContent = `at ${units.format(time(peak.time), 'time', 3)} ${units.symbol('time')}`;
     $('#chart-name').textContent = profile.name;
     $('#project-name').readOnly = ui.mode === 'create';
     if (document.activeElement !== $('#project-name')) $('#project-name').value = profile.name;
@@ -60,8 +62,9 @@ export function createStudioView(ctx) {
     $('#import').disabled = analyzing; $('#export').disabled = analyzing;
     $('#sample-count').textContent = p.points.length.toLocaleString('en-US');
     $('#data-status').textContent = `${m.samples.toLocaleString('en-US')} samples · ${units.format(m.duration, 'time', 3)} ${units.symbol('time')} timeline · ${units.symbol('thrust')} / ${units.symbol('time')}`;
-    $('#timeline-start').textContent = `${units.format(m.start, 'time', 3)} ${units.symbol('time')}`;
-    $('#timeline-end').textContent = `${units.format(m.end, 'time', 3)} ${units.symbol('time')}`;
+    $('#timeline-start').textContent = `${units.format(time(m.start), 'time', 3)} ${units.symbol('time')}`;
+    $('#timeline-end').textContent = `${units.format(time(m.end), 'time', 3)} ${units.symbol('time')}`;
+    $('#chart-time-basis').textContent = ui.timeOriginSI == null ? 'Recording time' : 'Time from fitted region start';
     for (const [id, property, data] of [['layer-theory', 'showTheory', 'theory'], ['theory-visible', 'showTheory', 'theory'], ['layer-original', 'showOriginal', 'original'], ['original-visible', 'showOriginal', 'original']]) {
       $(`#${id}`).checked = !!p[property]; $(`#${id}`).disabled = !p[data];
     }
@@ -75,9 +78,9 @@ export function createStudioView(ctx) {
     $('#theory-alignment').value = p.theoryAlignment.mode;
     $('#active-profile-name').textContent = p.name;
     $('#active-profile-meta').textContent = `${p.points.length.toLocaleString('en-US')} measurement points`;
-    units.set('cursor-time', ui.playhead);
+    units.set('cursor-time', time(ui.playhead));
     $('#cursor-thrust').textContent = `${units.format(interpolate(profile.points, ui.playhead), 'thrust')} ${units.symbol('thrust')}`;
-    $('#view-label').textContent = `${units.format(ui.view[0], 'time')} — ${units.format(ui.view[1], 'time')} ${units.symbol('time')}`;
+    $('#view-label').textContent = `${units.format(time(ui.view[0]), 'time')} — ${units.format(time(ui.view[1]), 'time')} ${units.symbol('time')}`;
     if (ui.thrustView) {
       const span = toDisplay(ui.thrustView[1] - ui.thrustView[0], 'thrust', units.get());
       const digits = Math.min(12, Math.max(0, Math.ceil(-Math.log10(span)) + 2));
@@ -94,6 +97,7 @@ export function createStudioView(ctx) {
     ctx.curve.reconcile(); ctx.shift.render(); ctx.signal.render(); ctx.fit.render(); ctx.retime.render(); ctx.generator.render(); ctx.samples.render(); ctx.measurement.render();
     ctx.chart.setState(ctx.chartState());
     ctx.grid.render();
+    ctx.timeGrid.render();
   }
   return { render, savedStatus };
 }
