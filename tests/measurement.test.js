@@ -72,7 +72,7 @@ test('the SVG overlay renders a single labeled draggable marker without empty de
   const markup = renderer(measureProfile(profile(), [.1]));
   assert.match(markup, /data-measure-marker="0"/);
   assert.doesNotMatch(markup, /data-measure-marker="1"|Δt|ΔF/);
-  assert.match(markup, /A 100\.000 ms · 0\.010 kN/);
+  assert.match(markup, /A 100 ms · 0\.010 kN/);
   assert.match(markup, /stroke-dasharray="4 4"/);
   assert.match(markup, /#168b88/);
 });
@@ -82,8 +82,8 @@ test('the SVG overlay displays both marker coordinates and signed differences in
   assert.match(markup, /data-measure-marker="0"/);
   assert.match(markup, /data-measure-marker="1"/);
   assert.match(markup, /#8766b3/);
-  assert.match(markup, /B 100\.000 ms · 0\.010 kN/);
-  assert.match(markup, /Δt -700\.000 ms/);
+  assert.match(markup, /B 100 ms · 0\.010 kN/);
+  assert.match(markup, /Δt -700 ms/);
   assert.match(markup, /ΔF -0\.010 kN/);
   assert.doesNotMatch(markup, /NaN|Infinity|undefined/);
 });

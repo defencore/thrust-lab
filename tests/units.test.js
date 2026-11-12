@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { UNIT_OPTIONS, DEFAULT_DISPLAY_UNITS, normalizeDisplayUnits, toDisplay, fromDisplay, unitFactor, unitSymbol, displayNumber, parseDisplayInput } from '../src/units.js';
+import { UNIT_OPTIONS, DEFAULT_DISPLAY_UNITS, normalizeDisplayUnits, toDisplay, fromDisplay, unitFactor, unitSymbol, displayNumber, formatTime, parseDisplayInput } from '../src/units.js';
 import { metrics } from '../src/profile.js';
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) <= Math.max(Math.abs(expected) * 5e-15, Number.MIN_VALUE), `${actual} ≠ ${expected}`);
@@ -71,6 +71,28 @@ test('readouts retain tiny nonzero values, group ordinary large numbers, and hon
   assert.notEqual(displayNumber(.0000001), displayNumber(0));
 });
 
+test('time readouts trim padding and preserve millisecond precision across display units', () => {
+  for (const value of [3.5, 3.49, 3.495]) assert.equal(formatTime(value), String(value));
+  assert.equal(formatTime(3.495, { time: 'ms' }), '3495');
+  assert.equal(formatTime(3.495, { time: 'us' }), '3495000');
+  assert.equal(formatTime(3.495, { time: 'min' }), '0.05825');
+  assert.equal(formatTime(3.4952, { time: 'ms' }, { digits: 4 }), '3495.2');
+  assert.equal(formatTime(3.4952, { time: 'us' }, { digits: 4 }), '3495200');
+  assert.equal(formatTime(3.5, { time: 's' }, { locale: 'uk-UA' }), '3,5');
+  assert.equal(formatTime(3.495, { time: 'ms' }, { locale: 'uk-UA' }), '3495');
+});
+
+test('time readouts preserve signed and tiny nonzero values without negative zero', () => {
+  assert.equal(formatTime(-3.5), '-3.5');
+  assert.equal(formatTime(-3.495, { time: 'ms' }), '-3495');
+  assert.equal(formatTime(0), '0');
+  assert.equal(formatTime(-0), '0');
+  for (const time of ['s', 'ms', 'us', 'min']) {
+    assert.notEqual(formatTime(1e-20, { time }), '0');
+    assert.match(formatTime(-1e-20, { time }), /^-/);
+  }
+});
+
 test('invalid dimensions, nonfinite conversions, and numeric range loss fail clearly', () => {
   assert.throws(() => toDisplay(1, 'pressure'), /thrust, time, or impulse/);
   assert.throws(() => unitFactor('constructor'), /thrust, time, or impulse/);
@@ -80,4 +102,7 @@ test('invalid dimensions, nonfinite conversions, and numeric range loss fail cle
   assert.throws(() => toDisplay(Number.MIN_VALUE, 'thrust', { thrust: 'kN' }), /numeric range/);
   assert.throws(() => displayNumber(Infinity), /finite number/);
   assert.throws(() => displayNumber(1, { digits: 13 }), /precision/);
+  assert.throws(() => formatTime(1, {}, { digits: 13 }), /precision/);
+  assert.throws(() => formatTime(NaN), /finite number/);
+  assert.throws(() => formatTime(Number.MAX_VALUE, { time: 'us' }), /numeric range/);
 });

@@ -60,13 +60,20 @@ export function parseDisplayInput(value, dimension, displayUnits = DEFAULT_DISPL
 }
 
 /** Keep small nonzero readings visible and avoid excessively wide numeric labels. */
-export function displayNumber(value, { digits = 2, locale = 'en-US' } = {}) {
+export function displayNumber(value, { digits = 2, locale = 'en-US', trimTrailingZeros = false, useGrouping = true } = {}) {
   if (!Number.isFinite(value)) throw new Error('Unit conversion requires a finite number.');
   if (!Number.isInteger(digits) || digits < 0 || digits > 12) throw new Error('Display precision must be a whole number from 0 to 12.');
   const absolute = Math.abs(value);
   if (absolute > 0 && (absolute < 1e-6 || absolute >= 1e15)) {
-    return new Intl.NumberFormat(locale, { notation: 'scientific', maximumFractionDigits: digits }).format(value);
+    return new Intl.NumberFormat(locale, { notation: 'scientific', maximumFractionDigits: digits, useGrouping }).format(value);
   }
   const adaptiveDigits = absolute > 0 && absolute < 1 ? Math.max(digits, Math.ceil(-Math.log10(absolute)) + Math.max(1, digits) - 1) : digits;
-  return new Intl.NumberFormat(locale, { minimumFractionDigits: digits, maximumFractionDigits: Math.min(12, adaptiveDigits) }).format(value === 0 ? 0 : value);
+  return new Intl.NumberFormat(locale, { minimumFractionDigits: trimTrailingZeros ? 0 : digits, maximumFractionDigits: Math.min(12, adaptiveDigits), useGrouping }).format(value === 0 ? 0 : value);
+}
+
+/** Time readouts share physical precision across units and omit padded decimals. */
+export function formatTime(valueSI, displayUnits = DEFAULT_DISPLAY_UNITS, { digits = 3, locale = 'en-US' } = {}) {
+  if (!Number.isInteger(digits) || digits < 0 || digits > 12) throw new Error('Display precision must be a whole number from 0 to 12.');
+  const precision = Math.min(12, Math.max(0, Math.ceil(digits + Math.log10(unitFactor('time', displayUnits)))));
+  return displayNumber(toDisplay(valueSI, 'time', displayUnits), { digits: precision, locale, trimTrailingZeros: true, useGrouping: false });
 }

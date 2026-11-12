@@ -77,6 +77,8 @@ The control row below the chart toolbar has separate **Time** and **Thrust** zoo
 
 The thrust status shows **Auto** when the visible recording determines the vertical scale. After a manual zoom, it shows the active range. **Reset thrust scale**, or a double-click on the thrust axis, returns to automatic scaling. **Fit all axes (F)** restores the full time range and automatic thrust scale together. Display units apply to the visible range and axis values.
 
+Time readouts omit padded trailing zeros and adjust precision to the selected unit: for example, `3.5 s`, `3.49 s`, or `3495 ms`. Precise measurements remain available when switching units.
+
 **Fit burn region** frames the active profile's 5% peak burn window with a small margin and automatic thrust scaling, excluding long idle periods before and after the burn. It changes the view only and is unavailable for recordings without a measurable burn.
 
 Zoom and pan are available in both workspaces and retain all recorded thrust values, timestamps, CSV data, and undo history. These view adjustments last for the current session.

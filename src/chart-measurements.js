@@ -1,4 +1,4 @@
-import { toDisplay, unitSymbol, displayNumber } from './units.js';
+import { toDisplay, unitSymbol, displayNumber, formatTime } from './units.js';
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 const coordinate = value => Number(value.toFixed(2));
@@ -8,7 +8,7 @@ const textWidth = text => text.length * 7;
 /** Render measuring cursors as SVG without modifying chart or recording state. */
 export function renderMeasurements({ measurement, x, y, box, units }) {
   if (!measurement?.a) return '';
-  const format = (value, dimension, signed = false) => `${signed && value > 0 ? '+' : ''}${displayNumber(toDisplay(value, dimension, units), { digits: 3 })} ${unitSymbol(dimension, units)}`;
+  const format = (value, dimension, signed = false) => `${signed && value > 0 ? '+' : ''}${dimension === 'time' ? formatTime(value, units) : displayNumber(toDisplay(value, dimension, units), { digits: 3 })} ${unitSymbol(dimension, units)}`;
   const width = Math.max(1, box.right - box.left);
   const font = 'font-family="ui-monospace,SFMono-Regular,monospace" font-size="12"';
   const markers = [measurement.a, measurement.b].filter(Boolean).map((point, index) => ({ point, index, px: x(point.time), py: y(point.thrust), color: colors[index] }));

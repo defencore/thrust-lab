@@ -1,4 +1,4 @@
-import { UNIT_OPTIONS, normalizeDisplayUnits, toDisplay, fromDisplay, unitSymbol, displayNumber } from '../units.js';
+import { UNIT_OPTIONS, normalizeDisplayUnits, toDisplay, fromDisplay, unitSymbol, displayNumber, formatTime } from '../units.js';
 
 export const INPUT_DIMENSIONS = {
   'edit-offset': 'thrust', 'edit-shift': 'time', 'target-peak': 'thrust', 'target-impulse': 'impulse', 'target-tail-start': 'time',
@@ -84,7 +84,8 @@ export function createUnitsController({ $, preferences, onChange, onError }) {
   syncLabels();
   return {
     get: () => current, set, read, symbol, syncLabels, change,
-    format: (value, dimension, digits = 2) => {
+    format: (value, dimension, digits = dimension === 'time' ? 3 : 2) => {
+      if (dimension === 'time') return formatTime(value, current, { digits });
       const displayed = toDisplay(value, dimension, current);
       const absolute = Math.abs(displayed);
       const precision = absolute > 0 && absolute < 1 ? Math.min(12, Math.max(digits, 2 - Math.floor(Math.log10(absolute)))) : digits;

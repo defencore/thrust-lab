@@ -6,7 +6,7 @@ const text = node => node?.textContent?.trim() || '';
 /** Image facts follow the requested visibility, independently of the PNG renderer. */
 export function chartImageModel(ctx, { getStyle = globalThis.getComputedStyle } = {}) {
   const { $, units, ui } = ctx;
-  const settings = ctx.imageSettings?.getState() || {};
+  const settings = ctx.imageSettings.getState();
   const showDetails = settings.showDetails === true, showLegend = settings.showLegend === true;
   const metrics = ['impulse', 'peak', 'burn', 'average'].map(name => {
     const value = $(`#metric-${name}`), card = value.closest('.metric');

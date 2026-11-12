@@ -57,6 +57,20 @@ function harness(overrides = {}) {
 
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} should be ${expected}`);
 
+test('hover time readouts trim padded decimals and convert units without grouping', () => {
+  const h = harness();
+  h.chart.svg.emit('pointermove', h.pointer(3.5, 30));
+  assert.match(h.chart.tooltip.innerHTML, /<span>3\.5 <small>s<\/small>/);
+  h.update({ units: { time: 'ms', thrust: 'N', impulse: 'N·s' } });
+  h.chart.svg.emit('pointermove', h.pointer(3.495, 30));
+  assert.match(h.chart.tooltip.innerHTML, /<span>3495 <small>ms<\/small>/);
+  h.update({ units: { time: 'us', thrust: 'N', impulse: 'N·s' } });
+  h.chart.svg.emit('pointermove', h.pointer(3.495, 30));
+  assert.match(h.chart.tooltip.innerHTML, /<span>3495000 <small>µs<\/small>/);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
 test('axis reset recognizes two pointer clicks even when SVG children are replaced between them', () => {
   const h = harness({ thrustView: [20, 60] });
   const axis = { clientX: 25, clientY: 180 };

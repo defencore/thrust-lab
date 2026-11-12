@@ -80,3 +80,22 @@ test('clean ruler input labels retain the exact snapped SI timestamp for subsequ
   assert.equal($('#measure-time-b').value, '1.4');
   assert.equal(units.read('measure-time-b'), time);
 });
+
+test('time label formatting keeps physical precision and never rewrites numeric input values', t => {
+  const { $, units } = fixture(t);
+  const timestamp = 3.495123456789;
+  units.set('range-start', timestamp);
+  for (const value of [3.5, 3.49, 3.495]) assert.equal(units.format(value, 'time'), String(value));
+  assert.equal(units.format(-0, 'time'), '0');
+  assert.equal($('#range-start').value, String(timestamp));
+  units.change({ time: 'ms' });
+  assert.equal(units.format(3.495, 'time'), '3495');
+  assert.equal(units.format(3.4952, 'time', 4), '3495.2');
+  assert.notEqual(units.format(1e-20, 'time'), '0');
+  assert.equal(units.format(-3.495, 'time'), '-3495');
+  assert.equal(units.read('range-start'), timestamp);
+  assert.equal($('#range-start').value, String(timestamp / .001));
+  units.change({ time: 'us' });
+  assert.equal(units.format(3.495, 'time'), '3495000');
+  assert.equal(units.read('range-start'), timestamp);
+});

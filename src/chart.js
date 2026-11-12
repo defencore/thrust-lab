@@ -1,6 +1,6 @@
 import { interpolate, metrics } from './profile.js';
 import { visibleEnvelope } from './chart-data.js';
-import { toDisplay, unitSymbol, displayNumber } from './units.js';
+import { toDisplay, unitSymbol, displayNumber, formatTime } from './units.js';
 import { renderMeasurements } from './chart-measurements.js';
 import { defaultThrustView, axisTicks, zoomVerticalView, panVerticalView } from './vertical-view.js';
 
@@ -187,7 +187,7 @@ export class ProfileChart {
       this.tooltip.hidden = false;
       this.tooltip.style.left = `${Math.min(c.x + 15, this.container.clientWidth - 150)}px`;
       this.tooltip.style.top = `${Math.max(4, c.y - 60)}px`;
-      this.tooltip.innerHTML = `<span>${displayNumber(toDisplay(c.time, 'time', this.state.units), { digits: 4 })} <small>${unitSymbol('time', this.state.units)}</small></span><strong>${displayNumber(toDisplay(interpolate(this.state.points, c.time), 'thrust', this.state.units), { digits: 3 })} <small>${unitSymbol('thrust', this.state.units)}</small></strong>`;
+      this.tooltip.innerHTML = `<span>${formatTime(c.time, this.state.units, { digits: 4 })} <small>${unitSymbol('time', this.state.units)}</small></span><strong>${displayNumber(toDisplay(interpolate(this.state.points, c.time), 'thrust', this.state.units), { digits: 3 })} <small>${unitSymbol('thrust', this.state.units)}</small></strong>`;
       this.draw();
     }
   }
