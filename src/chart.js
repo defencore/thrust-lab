@@ -1,4 +1,4 @@
-import { interpolate } from './profile.js';
+import { interpolate, metrics } from './profile.js';
 import { visibleEnvelope } from './chart-data.js';
 import { toDisplay, unitSymbol, displayNumber } from './units.js';
 import { renderMeasurements } from './chart-measurements.js';
@@ -85,6 +85,30 @@ export class ProfileChart {
   }
 
   fitThrust() { this.cancelDrag(); this.setThrustView(null); }
+
+  burnRegion() {
+    const points = this.state?.points;
+    if (!points) return null;
+    if (points !== this.burnSource) {
+      this.burnSource = points;
+      const measured = metrics(points);
+      this.burnBounds = measured.peak > 0 && Number.isFinite(measured.burnDuration) && measured.burnDuration > 0 ? measured : null;
+    }
+    return this.burnBounds;
+  }
+
+  canFitBurnRegion() { return this.burnRegion() !== null; }
+
+  /** Frame the measured burn while keeping quiet prelude and tail outside the view. */
+  fitBurnRegion() {
+    this.cancelDrag();
+    const burn = this.burnRegion();
+    if (!burn) return false;
+    const padding = burn.burnDuration * .04;
+    this.setView([Math.max(burn.start, burn.burnStart - padding), Math.min(burn.end, burn.burnEnd + padding)]);
+    this.setThrustView(null);
+    return true;
+  }
 
   coords(event) {
     const rect = this.svg.getBoundingClientRect();
@@ -231,15 +255,21 @@ export class ProfileChart {
 
   draw() {
     if (!this.state || !this.state.points.length) return;
+    const s = this.state;
+    [this.yMin, this.yMax] = this.effectiveThrustView();
+    const thrustTicks = axisTicks([this.yMin, this.yMax], s.units, 5, { stepSI: s.gridStepSI ?? null, strict: false });
+    const automaticHeight = s.gridStepSI != null && s.chartHeight == null ? Math.min(1200, Math.max(0, (thrustTicks.valuesSI.length - 1) * 22 + 70)) : 0;
+    this.container.style.minHeight = automaticHeight ? `${automaticHeight}px` : '';
+    this.container.style.height = s.chartHeight == null ? '' : `${s.chartHeight}px`;
     const width = this.container.clientWidth;
-    const height = this.container.clientHeight;
+    const height = s.chartHeight ?? Math.max(this.container.clientHeight, automaticHeight);
     if (!width || !height) return;
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     this.box = { left: 62, right: width - 24, top: 28, bottom: height - 42, width: width - 86, height: height - 70 };
     const box = this.box;
-    const s = this.state;
     const [start, end] = s.view;
-    [this.yMin, this.yMax] = this.effectiveThrustView();
+    const labelEvery = thrustTicks.custom ? Math.max(1, Math.ceil((thrustTicks.valuesSI.length - 1) * 22 / box.height)) : 1;
+    this.gridInfo = { ...thrustTicks, labelEvery, labelStepSI: thrustTicks.stepSI * labelEvery, height };
     const x = t => box.left + (t - start) / (end - start) * box.width;
     const y = v => box.bottom - (v - this.yMin) / (this.yMax - this.yMin) * box.height;
     const path = (points, close = false) => {
@@ -249,8 +279,10 @@ export class ProfileChart {
       return close ? `${d}L${x(visible.at(-1).time)},${box.bottom}L${x(visible[0].time)},${box.bottom}Z` : d;
     };
     let content = `<defs><linearGradient id="curve-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3978bf" stop-opacity=".16"/><stop offset="100%" stop-color="#3978bf" stop-opacity=".015"/></linearGradient><clipPath id="plot-clip"><rect x="${box.left}" y="${box.top}" width="${box.width}" height="${box.height}"/></clipPath></defs>`;
-    const thrustTicks = axisTicks([this.yMin, this.yMax], s.units);
-    for (const value of thrustTicks.valuesSI) content += `<line class="grid-line" x1="${box.left}" y1="${y(value)}" x2="${box.right}" y2="${y(value)}"/><text class="axis-label" x="${box.left - 13}" y="${y(value) + 4}" text-anchor="end">${number(toDisplay(value, 'thrust', s.units), thrustTicks.precision)}</text>`;
+    for (const [index, value] of thrustTicks.valuesSI.entries()) {
+      content += `<line class="grid-line" x1="${box.left}" y1="${y(value)}" x2="${box.right}" y2="${y(value)}"/>`;
+      if (index % labelEvery === 0) content += `<text class="axis-label" x="${box.left - 13}" y="${y(value) + 4}" text-anchor="end">${number(toDisplay(value, 'thrust', s.units), thrustTicks.precision)}</text>`;
+    }
     const xTicks = width < 520 ? 5 : 8;
     const timePrecision = Math.max(0, Math.min(12, Math.ceil(-Math.log10(toDisplay(end - start, 'time', s.units) / xTicks)) + 1));
     for (let i = 0; i <= xTicks; i++) {
@@ -263,19 +295,22 @@ export class ProfileChart {
       const feather = clamp(Number(s.feather) || 0, 0, .5);
       if (feather > 0) {
         const edge = (s.selection[1] - s.selection[0]) * feather;
-        for (const t of [s.selection[0] + edge, s.selection[1] - edge]) content += `<line class="feather-guide" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/>`;
+        for (const t of [s.selection[0] + edge, s.selection[1] - edge]) content += `<line class="feather-guide chart-transient" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/>`;
       }
     }
     if (s.curveInfluence) {
+      content += '<g class="chart-transient">';
       const [left, right] = s.curveInfluence;
       content += `<rect class="curve-influence-fill" x="${x(left)}" y="${box.top}" width="${x(right) - x(left)}" height="${box.height}"/>`;
       for (const time of s.curveInfluence) content += `<line class="curve-influence-edge" x1="${x(time)}" y1="${box.top}" x2="${x(time)}" y2="${box.bottom}"/>`;
+      content += '</g>';
     }
     if (s.showOriginal && s.original) content += `<path class="original-path" d="${path(s.original)}"/>`;
-    if (s.curveBase) content += `<path class="curve-base-path" d="${path(s.curveBase)}"/>`;
+    if (s.curveBase) content += `<path class="curve-base-path chart-transient" d="${path(s.curveBase)}"/>`;
     if (s.showTheory && s.theory) content += `<path class="theory-path" d="${path(s.theory)}"/>`;
     content += `<path fill="url(#curve-fill)" d="${path(s.points, true)}"/><path class="current-path" d="${path(s.points)}"/>`;
-    if (s.selection) for (const t of s.selection) content += `<line class="selection-edge" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/><rect class="selection-handle" x="${x(t) - 3}" y="${box.top}" width="6" height="16" rx="2"/>`;
+    if (s.selection) for (const t of s.selection) content += `<line class="selection-edge" x1="${x(t)}" y1="${box.top}" x2="${x(t)}" y2="${box.bottom}"/><rect class="selection-handle chart-transient" x="${x(t) - 3}" y="${box.top}" width="6" height="16" rx="2"/>`;
+    content += '<g class="chart-transient">';
     if (s.playhead >= start && s.playhead <= end) content += `<line class="cursor-line" x1="${x(s.playhead)}" y1="${box.top}" x2="${x(s.playhead)}" y2="${box.bottom}"/><path fill="#334155" d="M${x(s.playhead) - 5},${box.top - 7}h10l-5,7z"/>`;
     if (this.hover && !this.drag) {
       const forceY = y(interpolate(s.points, this.hover.time));
@@ -292,6 +327,7 @@ export class ProfileChart {
       const sample = s.points[s.selectedSample];
       content += `<circle class="curve-node-halo" cx="${x(sample.time)}" cy="${y(sample.thrust)}" r="14"/><circle class="curve-control-node selected" cx="${x(sample.time)}" cy="${y(sample.thrust)}" r="7"/>`;
     }
+    content += '</g>';
     content += renderMeasurements({ measurement: s.measurement, x, y, box, units: s.units });
     content += `</g><rect class="thrust-axis-hit" x="0" y="${box.top}" width="${box.left - 4}" height="${box.height}" fill="transparent" style="cursor:ns-resize"><title>Drag to zoom thrust · Double-click to reset</title></rect>`;
     this.svg.innerHTML = content;

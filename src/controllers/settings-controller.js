@@ -15,6 +15,7 @@ export function createSettingsController(ctx) {
     document.documentElement.style.setProperty('--theory-opacity', Number(saved.controls['theory-opacity']) / 100);
     ctx.fit.restorePreferences();
     ctx.retime.restorePreferences();
+    ctx.grid.restorePreferences();
     ctx.shift.deactivate();
     $('#preferences-status').textContent = preferences.available ? 'Settings are saved automatically.' : 'Settings are kept for this session; browser storage is unavailable.';
     ctx.setInspector(saved.inspectorTab); ctx.setBottom(saved.editorTab);

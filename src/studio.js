@@ -19,6 +19,8 @@ import { createTheoryFitController } from './controllers/theory-fit-controller.j
 import { createProfileRetimeController } from './controllers/profile-retime-controller.js';
 import { createSettingsController } from './controllers/settings-controller.js';
 import { createChartController } from './controllers/chart-controller.js';
+import { createChartGridController } from './controllers/chart-grid-controller.js';
+import { createChartImageController } from './controllers/chart-image-controller.js';
 import { createMeasurementController } from './controllers/measurement-controller.js';
 import { createShiftController } from './controllers/shift-controller.js';
 import { clearChartSelection } from './controllers/selection-controller.js';
@@ -112,7 +114,7 @@ export function createStudio() {
     },
     chartState() {
       const profile = ctx.activeProfile();
-      return { ...profile, units: ctx.units.get(), thrustView: ui.thrustView, theory: ui.mode === 'edit' && ctx.fit.chartReference() || alignTheory(profile.theory, profile.points, profile.theoryAlignment), ...(ui.mode === 'edit' ? ctx.curve.chartState() : {}), measurement: ctx.measurement.chartState(), selectedSample: ui.selectedSample, feather: ui.mode === 'edit' && ctx.getRange() ? Number($('#edit-feather').value || 0) / 100 : 0 };
+      return { ...profile, ...ctx.grid.getState(), units: ctx.units.get(), thrustView: ui.thrustView, theory: ui.mode === 'edit' && ctx.fit.chartReference() || alignTheory(profile.theory, profile.points, profile.theoryAlignment), ...(ui.mode === 'edit' ? ctx.curve.chartState() : {}), measurement: ctx.measurement.chartState(), selectedSample: ui.selectedSample, feather: ui.mode === 'edit' && ctx.getRange() ? Number($('#edit-feather').value || 0) / 100 : 0 };
     },
   };
   ctx.units = createUnitsController({ $, preferences, onChange() { ctx.generator?.presets($('#preset-search').value); ctx.samples?.render({ force: true }); ctx.render(); }, onError: ctx.error });
@@ -127,6 +129,8 @@ export function createStudio() {
   ctx.files = createFilesController(ctx);
   ctx.theory = createTheoryController(ctx);
   ctx.chart = createChartController(ctx);
+  ctx.grid = createChartGridController(ctx);
+  ctx.image = createChartImageController(ctx);
   ctx.analyzer = createAnalyzerController(ctx);
   bindNavigation(ctx);
   ctx.settings = createSettingsController(ctx);

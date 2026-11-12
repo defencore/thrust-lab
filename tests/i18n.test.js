@@ -2,6 +2,55 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dictionary, translate, getLanguage, setLanguage, t } from '../src/i18n.js';
 
+test('chart image actions, report context and browser errors remain bilingual and reversible', () => {
+  for (const [english, ukrainian] of [
+    ['Profile chart', 'Графік профілю'],
+    ['Curve legend', 'Легенда графіка'],
+    ['Chart image actions', 'Дії із зображенням графіка'],
+    ['Copy chart image', 'Скопіювати зображення графіка'],
+    ['Save chart image as PNG', 'Зберегти зображення графіка як PNG'],
+    ['Copy image', 'Копіювати зображення'],
+    ['Save PNG', 'Зберегти PNG'],
+    ['Chart image copied', 'Зображення графіка скопійовано'],
+    ['Chart image saved', 'Зображення графіка збережено'],
+    ['Time window', 'Часовий діапазон'],
+    ['Full profile metrics', 'Показники всього профілю'],
+    ['Image copying is unavailable in this browser. Use Save PNG.', 'Копіювання зображень у цьому браузері недоступне. Скористайтеся «Зберегти PNG».'],
+    ['The chart image could not be copied. Use Save PNG.', 'Не вдалося скопіювати зображення графіка. Скористайтеся «Зберегти PNG».'],
+    ['The chart image could not be created. Try again.', 'Не вдалося створити зображення графіка. Спробуйте ще раз.'],
+    ['The chart image could not be saved. Try again.', 'Не вдалося зберегти зображення графіка. Спробуйте ще раз.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+});
+
+test('custom thrust grid and height controls explain density limits in either language', () => {
+  for (const [english, ukrainian] of [
+    ['Chart detail controls', 'Деталізація графіка'],
+    ['Thrust grid', 'Сітка тяги'],
+    ['Thrust grid mode', 'Режим сітки тяги'],
+    ['Custom step', 'Власний крок'],
+    ['Grid step', 'Крок сітки'],
+    ['Thrust grid step', 'Крок сітки тяги'],
+    ['Chart height', 'Висота графіка'],
+    ['Auto height', 'Автоматична висота'],
+    ['Compact', 'Компактний'],
+    ['Medium', 'Середній'],
+    ['Large', 'Великий'],
+    ['Tall', 'Високий'],
+    ['Grid step must be finite and greater than zero.', 'Крок сітки має бути скінченним і більшим за нуль.'],
+    ['Grid step is too small for this view. Zoom in or choose a larger step.', 'Крок сітки надто малий для цього діапазону. Збільште масштаб або виберіть більший крок.'],
+    ['Choose Auto or Custom step.', 'Виберіть «Авто» або «Власний крок».'],
+    ['Choose a valid chart height.', 'Виберіть коректну висоту графіка.'],
+    ['Zoom in to show every grid line.', 'Збільште масштаб, щоб показати кожну лінію сітки.'],
+    ['Increase chart height or zoom in to show more labels.', 'Збільште висоту графіка або масштаб, щоб показати більше підписів.'],
+  ]) {
+    assert.equal(translate(english, 'uk'), ukrainian);
+    assert.equal(translate(ukrainian, 'en'), english);
+  }
+});
+
 test('duration matching explains impulse preservation, automatic peak and fixed-grid limits in both languages', () => {
   for (const [english, ukrainian] of [
     ['Burn duration and output', 'Тривалість горіння та тяга'],
@@ -268,6 +317,8 @@ test('independent axis zoom controls and automatic scale hints remain bilingual'
     ['Visible thrust range', 'Видимий діапазон тяги'],
     ['Auto', 'Авто'],
     ['Fit all axes (F)', 'Показати весь графік (F)'],
+    ['Fit burn region', 'Показати ділянку горіння'],
+    ['Fit the active burn window, excluding idle time before and after thrust.', 'Показати активну ділянку горіння без часу очікування до появи тяги й після її завершення.'],
     ['Shift + wheel: thrust zoom · Double-click thrust axis: auto scale', 'Shift + коліщатко: масштаб тяги · Подвійний клік по осі тяги: автомасштаб'],
     ['Drag to zoom thrust · Double-click to reset', 'Перетягніть для масштабування тяги · Подвійний клік для скидання'],
     ['Vertical view needs a finite nonnegative minimum below its maximum.', 'Вертикальний діапазон: потрібен скінченний невід’ємний мінімум, менший за максимум.'],

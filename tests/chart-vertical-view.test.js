@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ProfileChart } from '../src/chart.js';
 import { createProjectStore } from '../src/project-store.js';
+import { metrics } from '../src/profile.js';
 
 class Element {
   constructor(width = 800, height = 400) {
@@ -78,6 +79,86 @@ test('a nonzero thrust minimum maps screen coordinates, recorded path and y labe
   const labels = [...chart.svg.innerHTML.matchAll(/<text class="axis-label" x="49" y="[^"]+" text-anchor="end">([^<]+)<\/text>/g)].map(match => Number(match[1]));
   assert.ok(labels.includes(20) && labels.includes(60));
   assert.ok(labels.every(value => value >= 20 && value <= 60));
+  h.store.destroy();
+});
+
+test('manual grid detail expands auto height, keeps every line and never edits data', () => {
+  const factor = 9.80665;
+  const h = harness({ thrustView: [0, 1000 * factor], gridStepSI: 25 * factor, units: { time: 's', thrust: 'kgf', impulse: 'N·s' } });
+  const original = h.store.get();
+  assert.equal(h.chart.gridInfo.valuesSI.length, 41);
+  assert.equal(h.chart.gridInfo.labelEvery, 1);
+  assert.equal(h.chart.container.style.minHeight, '950px');
+  assert.equal(h.chart.gridInfo.height, 950);
+  assert.equal([...h.chart.svg.innerHTML.matchAll(/<line class="grid-line" /g)].length, 41);
+  h.update({ chartHeight: 340 });
+  assert.equal(h.chart.container.style.minHeight, '');
+  assert.equal(h.chart.container.style.height, '340px');
+  assert.ok(h.chart.gridInfo.labelEvery > 1);
+  assert.equal(h.chart.gridInfo.valuesSI.length, 41);
+  h.update({ gridStepSI: null, chartHeight: null });
+  assert.equal(h.chart.container.style.minHeight, '');
+  assert.equal(h.chart.container.style.height, '');
+  assert.equal(h.store.get(), original);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('zooming beyond a custom grid density remains bounded and flags reduced detail', () => {
+  const h = harness({ thrustView: [0, 100000], gridStepSI: 1 });
+  assert.ok(h.chart.gridInfo.valuesSI.length <= 500);
+  assert.equal(h.chart.gridInfo.densityLimited, true);
+  assert.ok(h.chart.gridInfo.height <= 1200);
+  assert.match(h.chart.svg.innerHTML, /class="chart-transient"/);
+  h.store.destroy();
+});
+
+test('fitting the burn region excludes long idle recordings and fits both view axes without edits', () => {
+  const points = [
+    { time: 0, thrust: 0 }, { time: 10, thrust: 0 }, { time: 10.1, thrust: 20 },
+    { time: 10.5, thrust: 100 }, { time: 11.5, thrust: 80 }, { time: 12.4, thrust: 20 },
+    { time: 12.5, thrust: 0 }, { time: 1000, thrust: 0 },
+  ];
+  const before = structuredClone(points), measured = metrics(points);
+  const h = harness({ points, view: [0, 1000], thrustView: [100, 200] }), original = h.store.get();
+  assert.equal(h.chart.canFitBurnRegion(), true);
+  assert.equal(h.chart.fitBurnRegion(), true);
+  const padding = measured.burnDuration * .04;
+  close(h.chart.state.view[0], measured.burnStart - padding);
+  close(h.chart.state.view[1], measured.burnEnd + padding);
+  assert.equal(h.chart.state.thrustView, null);
+  assert.ok(h.chart.effectiveThrustView()[1] >= measured.peak);
+  assert.ok(h.chart.state.view[1] - h.chart.state.view[0] < 3);
+  assert.deepEqual(points, before);
+  assert.equal(h.store.get(), original);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('burn framing ignores low baseline noise and clamps padding to available timestamps', () => {
+  const noisy = [{ time: 0, thrust: 2 }, { time: 9.9, thrust: 3 }, { time: 10, thrust: 0 }, { time: 10.1, thrust: 30 }, { time: 10.5, thrust: 100 }, { time: 11.5, thrust: 20 }, { time: 11.7, thrust: 0 }, { time: 900, thrust: 1 }, { time: 1000, thrust: 3 }];
+  const h = harness({ points: noisy, view: [0, 1000] });
+  h.chart.fitBurnRegion();
+  assert.ok(h.chart.state.view[0] > 9 && h.chart.state.view[1] < 13);
+  const atStart = [{ time: 0, thrust: 10 }, { time: 1, thrust: 0 }];
+  h.update({ points: atStart, view: [0, 1] });
+  h.chart.fitBurnRegion();
+  assert.equal(h.chart.state.view[0], 0);
+  assert.ok(h.chart.state.view[1] > .95 && h.chart.state.view[1] <= 1);
+  h.store.destroy();
+});
+
+test('recordings without thrust have no burn-fit action and retain the existing view', () => {
+  const quiet = [{ time: 0, thrust: 0 }, { time: 10, thrust: 0 }, { time: 100, thrust: 0 }];
+  const h = harness({ points: quiet, view: [10, 90], thrustView: [0, 25] });
+  assert.equal(h.chart.canFitBurnRegion(), false);
+  assert.equal(h.chart.fitBurnRegion(), false);
+  assert.deepEqual(h.chart.state.view, [10, 90]);
+  assert.deepEqual(h.chart.state.thrustView, [0, 25]);
+  assert.equal(h.calls.time.length, 0); assert.equal(h.calls.thrust.length, 0);
+  h.update({ points: [{ time: 0, thrust: 0 }, { time: 10, thrust: 50 }, { time: 100, thrust: 0 }] });
+  assert.equal(h.chart.canFitBurnRegion(), true);
+  assert.equal(h.store.status().undoCount, 0);
   h.store.destroy();
 });
 

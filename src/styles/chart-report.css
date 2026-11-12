@@ -1,0 +1,20 @@
+/* The report keeps exported facts adjacent to the curve without including editing controls. */
+.chart-report { min-width: 0; background: #fff; }
+.chart-report .chart-heading { align-items: flex-start; padding: 18px 20px 12px; gap: 12px; }
+.chart-report .chart-heading > div:first-child { flex: 1 1 180px; }
+.chart-report .chart-heading h1 { max-width: none; }
+.chart-image-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
+.chart-image-actions .button { min-height: 34px; padding: 5px 9px; font-size: 12px; }
+.chart-image-actions .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.chart-report .metrics-grid { padding: 0 18px; margin: 0 0 12px; gap: 8px; }
+.chart-report .metric { min-height: 104px; padding: 12px 11px; background: #f8fafc; border-color: #e4eaf0; }
+.chart-report .metric strong { font-size: clamp(20px, 1.6vw, 26px); }
+.chart-report .metric > div { flex-wrap: wrap; gap: 3px 5px; }
+.chart-report .chart-legend { padding: 0 20px 7px; justify-content: flex-start; gap: 7px 16px; min-height: 20px; max-width: none; }
+.chart-report .chart-legend i.gray { border-color: #a7b0bc; }
+@media (max-width: 760px) {
+  .chart-report .chart-heading { padding: 15px 14px 12px; }
+  .chart-report .metrics-grid { padding: 0 12px; gap: 7px; }
+  .chart-report .metric { padding: 10px 9px; }
+  .chart-report .chart-legend { padding-left: 14px; padding-right: 14px; }
+}

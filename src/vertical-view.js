@@ -31,23 +31,34 @@ export function defaultThrustView(peak, units) {
 }
 
 /** Make a bounded set of nice force ticks while retaining their canonical SI values. */
-export function axisTicks(view, units, count = 5) {
+export function axisTicks(view, units, count = 5, { stepSI: requestedStep = null, strict = true } = {}) {
   const span = validateView(view);
   if (!Number.isInteger(count) || count < 1) throw new Error('Choose a positive whole number of axis intervals.');
   const factor = unitFactor('thrust', units);
-  const stepDisplay = niceStep(span / factor / Math.min(10, count));
-  const stepSI = capped(stepDisplay * factor);
-  const precision = clamp(Math.ceil(-Math.log10(stepDisplay)) + 2, 0, 12);
+  const custom = requestedStep !== null;
+  if (custom && (!Number.isFinite(requestedStep) || requestedStep <= 0)) throw new Error('Grid step must be finite and greater than zero.');
+  const requestedCount = custom ? Math.ceil(span / requestedStep) + 1 : 0;
+  const densityLimited = custom && requestedCount > 500;
+  if (densityLimited && strict) {
+    const error = new Error('Grid step is too small for this view. Zoom in or choose a larger step.');
+    error.code = 'GRID_DENSITY'; error.minimumStepSI = span / 499;
+    throw error;
+  }
+  const stride = densityLimited ? Math.ceil(requestedCount / 500) : 1;
+  const customStep = custom ? Number.isFinite(stride) ? capped(requestedStep * stride) : niceStep(span / 499) : null;
+  const stepDisplay = custom ? customStep / factor : niceStep(span / factor / Math.min(10, count));
+  const stepSI = custom ? customStep : capped(stepDisplay * factor);
+  const precision = clamp(custom ? 6 - Math.floor(Math.log10(stepDisplay)) : Math.ceil(-Math.log10(stepDisplay)) + 2, 0, 12);
   const firstIndex = Math.ceil(view[0] / stepSI);
   const first = firstIndex * stepSI;
   const tolerance = Math.min(span / 1e8, Math.max(Math.abs(view[0]), Math.abs(view[1])) * Number.EPSILON * 8);
   const valuesSI = [];
-  for (let index = 0; index < 12; index++) {
+  for (let index = 0; index < (custom ? 500 : 12); index++) {
     const value = first + index * stepSI;
     if (!Number.isFinite(value) || value > view[1] + tolerance) break;
     if (value >= view[0] - tolerance && (!valuesSI.length || value > valuesSI.at(-1))) valuesSI.push(value === 0 ? 0 : value);
   }
-  return { valuesSI, stepSI, precision };
+  return { valuesSI, stepSI, precision, custom, requestedStepSI: custom ? requestedStep : stepSI, densityLimited };
 }
 
 function limits(extent) {

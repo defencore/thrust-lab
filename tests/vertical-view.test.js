@@ -28,6 +28,35 @@ test('axis ticks remain inside the viewport and carry exact canonical force valu
   assert.ok(offset.valuesSI.length > 1);
 });
 
+test('custom kilogram-force grid retains every 25-unit interval across display conversions', () => {
+  const factor = unitFactor('thrust', { thrust: 'kgf' });
+  const view = [0, 1000 * factor], stepSI = 25 * factor;
+  const ticks = axisTicks(view, { thrust: 'kgf' }, 5, { stepSI });
+  assert.equal(ticks.valuesSI.length, 41);
+  ticks.valuesSI.forEach((value, index) => close(value / factor, index * 25));
+  assert.equal(ticks.stepSI, stepSI);
+  assert.equal(ticks.densityLimited, false);
+  const converted = axisTicks(view, { thrust: 'N' }, 5, { stepSI });
+  assert.deepEqual(converted.valuesSI, ticks.valuesSI);
+  assert.ok(converted.precision >= 4);
+  assert.deepEqual(view, [0, 1000 * factor]);
+});
+
+test('custom grid aligns shifted ranges to zero and rejects unsafe detail without unbounded work', () => {
+  const ticks = axisTicks([130, 690], { thrust: 'N' }, 5, { stepSI: 25 });
+  assert.deepEqual(ticks.valuesSI, Array.from({ length: 22 }, (_, index) => 150 + index * 25));
+  assert.throws(() => axisTicks([0, 1000], undefined, 5, { stepSI: .001 }), issue => issue.code === 'GRID_DENSITY' && issue.minimumStepSI > 0);
+  const zoomedOut = axisTicks([0, 1000], undefined, 5, { stepSI: .001, strict: false });
+  assert.equal(zoomedOut.densityLimited, true);
+  assert.ok(zoomedOut.valuesSI.length <= 500);
+  assert.ok(zoomedOut.valuesSI.every(Number.isFinite));
+  const extreme = axisTicks([0, Number.MAX_VALUE], undefined, 5, { stepSI: Number.MIN_VALUE, strict: false });
+  assert.equal(extreme.densityLimited, true);
+  assert.ok(extreme.valuesSI.length > 1 && extreme.valuesSI.length <= 500);
+  assert.ok(extreme.valuesSI.every(Number.isFinite));
+  for (const stepSI of [0, -1, NaN, Infinity]) assert.throws(() => axisTicks([0, 100], undefined, 5, { stepSI }), /finite and greater/);
+});
+
 test('tick generation is bounded and display-unit changes retain physical viewport limits', () => {
   const view = [0, 100];
   for (const thrust of ['N', 'kN', 'kgf', 'lbf']) {

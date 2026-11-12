@@ -26,6 +26,7 @@ export const PREFERENCE_DEFAULTS = freeze({
   generator: null,
   theoryFit: null,
   profileRetime: { impulseMode: 'preserve', peakMode: 'auto' },
+  chartGrid: { mode: 'auto', stepSI: 25, height: null },
   inspectorTab: 'transform',
   editorTab: 'samples',
   focus: false,
@@ -128,6 +129,13 @@ function normalize(patch, previous = PREFERENCE_DEFAULTS) {
     result.profileRetime = {
       impulseMode: choice(patch.profileRetime.impulseMode, ['preserve', 'custom'], previous.profileRetime.impulseMode),
       peakMode: choice(patch.profileRetime.peakMode, ['auto', 'custom'], previous.profileRetime.peakMode),
+    };
+  }
+  if (plain(patch.chartGrid)) {
+    result.chartGrid = {
+      mode: choice(patch.chartGrid.mode, ['auto', 'custom'], previous.chartGrid.mode),
+      stepSI: own(patch.chartGrid, 'stepSI') ? numeric(patch.chartGrid.stepSI, [Number.MIN_VALUE, Number.MAX_VALUE], previous.chartGrid.stepSI) : previous.chartGrid.stepSI,
+      height: own(patch.chartGrid, 'height') ? choice(patch.chartGrid.height, [null, 340, 520, 760, 1000], previous.chartGrid.height) : previous.chartGrid.height,
     };
   }
   if (own(patch, 'inspectorTab')) result.inspectorTab = choice(patch.inspectorTab, ['transform', 'curve', 'signal', 'theory'], previous.inspectorTab);

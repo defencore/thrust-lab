@@ -66,6 +66,7 @@ export function createStudioView(ctx) {
       $(`#${id}`).checked = !!p[property]; $(`#${id}`).disabled = !p[data];
     }
     $('#theory-legend').hidden = !profile.theory || !profile.showTheory;
+    $('#original-legend').hidden = !profile.original || !profile.showOriginal;
     $('#theory-legend').lastChild.textContent = ctx.fit.isActive ? 'Matched reference' : 'Theoretical';
     $('#theory-source').textContent = p.theory ? `${p.theory.length.toLocaleString('en-US')} points · reference overlay` : 'No reference loaded';
     for (const id of ['remove-theory', 'align-theory-start']) $(`#${id}`).disabled = !p.theory;
@@ -92,6 +93,7 @@ export function createStudioView(ctx) {
     selection(); savedStatus(); history();
     ctx.curve.reconcile(); ctx.shift.render(); ctx.signal.render(); ctx.fit.render(); ctx.retime.render(); ctx.generator.render(); ctx.samples.render(); ctx.measurement.render();
     ctx.chart.setState(ctx.chartState());
+    ctx.grid.render();
   }
   return { render, savedStatus };
 }

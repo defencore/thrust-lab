@@ -7,12 +7,24 @@
 .thrust-zoom-group { padding-left: 12px; border-left: 1px solid #dfe7ee; }
 .thrust-scale-status { padding: 2px 6px; margin-left: 3px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; border: 1px solid #e0e8ef; border-radius: 4px; background: #fff; color: #8798a8; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .thrust-scale-status.manual { color: #316b9e; background: #edf5fc; border-color: #bfd5e8; }
-.axis-zoom-controls .fit-all-axes { min-height: 25px; padding: 3px 6px; gap: 5px; margin-left: auto; color: #6c839a; font-size: 12px; }
+.axis-fit-controls { display: flex; flex: 0 0 auto; align-items: stretch; flex-wrap: wrap; justify-content: flex-end; gap: 5px; max-width: 100%; margin-left: auto; }
+.axis-zoom-controls .fit-all-axes { min-height: 32px; padding: 3px 6px; gap: 5px; margin-left: 0; color: #6c839a; font-size: 12px; }
 .fit-all-axes .icon { width: 13px; height: 13px; }
 .fit-all-axes kbd { padding: 0 3px; font-size: 12px; }
+.axis-zoom-controls .fit-burn-region { min-height: 32px; padding: 3px 6px; color: #6c839a; font-size: 12px; }
+.fit-burn-region .icon { width: 13px; height: 13px; }
 .axis-zoom-help { display: inline-flex; align-items: center; gap: 4px; color: #91a0b0; font-size: 12px; white-space: nowrap; cursor: help; }
 .axis-zoom-help .icon { width: 12px; height: 12px; }
 .guide-axis-note { color: #7c8fa4; font-size: 12px; line-height: 1.8; padding: 0 0 14px; }
+.chart-display-controls { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 14px; padding: 10px 13px; border-bottom: 1px solid var(--line); background: #fafcfe; }
+.chart-display-controls > label { display: flex; flex-direction: column; align-items: stretch; gap: 5px; min-width: 0; color: #698096; font-size: 12px; }
+.chart-grid-mode, .chart-height-control { flex: 1 1 130px; }
+.chart-grid-step { flex: 1 1 115px; }
+.chart-display-controls input, .chart-display-controls select { width: 100%; min-width: 0; }
+.chart-display-controls input:disabled { background: #f3f6f9; color: #8a9caf; }
+.chart-display-controls .chart-grid-status, .chart-display-controls .chart-grid-error { flex: 1 1 100%; margin: 0; font-size: 12px; line-height: 1.6; }
+.chart-grid-status { color: #74899e; }
+.chart-grid-error { color: #a35837; }
 @media (max-width: 1250px) { .axis-zoom-help { display: none; } .axis-zoom-controls { gap: 5px 8px; } .thrust-zoom-group { padding-left: 8px; } }
 @media (max-width: 760px) {
   .axis-zoom-controls { padding: 6px 9px; gap: 5px 8px; }
@@ -26,9 +38,13 @@
 @container work-area (max-width: 660px) {
   .axis-zoom-controls .axis-zoom-help { display: none; }
 }
-@container work-area (max-width: 420px) {
-  .axis-zoom-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+@container work-area (max-width: 430px) {
+  .axis-zoom-controls { display: grid; grid-template-columns: minmax(0, 1fr); }
   .axis-zoom-controls > .axis-zoom-group:first-child { grid-column: 1; grid-row: 1; }
-  .axis-zoom-controls .fit-all-axes { grid-column: 2; grid-row: 1; }
   .thrust-zoom-group { grid-column: 1 / -1; grid-row: 2; padding-left: 0; border-left: 0; }
+  .axis-fit-controls { grid-column: 1 / -1; grid-row: 3; width: 100%; margin-left: 0; }
+  .axis-fit-controls > .button { flex: 1 1 150px; min-width: 0; white-space: normal; }
+  .chart-display-controls { gap: 9px; padding: 10px; }
+  .chart-grid-mode, .chart-grid-step { flex: 1 1 calc(50% - 5px); }
+  .chart-height-control { flex: 1 1 100%; }
 }

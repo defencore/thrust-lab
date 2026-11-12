@@ -77,7 +77,15 @@ The control row below the chart toolbar has separate **Time** and **Thrust** zoo
 
 The thrust status shows **Auto** when the visible recording determines the vertical scale. After a manual zoom, it shows the active range. **Reset thrust scale**, or a double-click on the thrust axis, returns to automatic scaling. **Fit all axes (F)** restores the full time range and automatic thrust scale together. Display units apply to the visible range and axis values.
 
+**Fit burn region** frames the active profile's 5% peak burn window with a small margin and automatic thrust scaling, excluding long idle periods before and after the burn. It changes the view only and is unavailable for recordings without a measurable burn.
+
 Zoom and pan are available in both workspaces and retain all recorded thrust values, timestamps, CSV data, and undo history. These view adjustments last for the current session.
+
+## Chart detail and images
+
+Choose **Custom step** under **Thrust grid** to set the vertical grid interval in the current display unit. For example, select **kgf** in Display units and enter **25** for gridlines every 25 kgf. Grid spacing changes the view only. With **Auto height**, a detailed grid grows the chart to keep labels readable, up to 1200 px. **Compact**, **Medium**, **Large**, and **Tall** select a fixed height; closely spaced labels are thinned while gridlines remain visible. Zoom in when the view becomes too dense. Grid and height preferences are remembered and can be reset through Saved settings.
+
+The curve and its four metrics share one report panel. **Copy image** puts a PNG on the clipboard, and **Save PNG** downloads the same report. It includes the profile name, full-profile impulse/peak/burn duration/mean thrust, units, active comparison legend, and the currently visible plot and time window. Rulers and selected ranges remain visible; transient cursor and curve-edit handles are omitted. The image is rendered at twice the logical resolution, with a bounded canvas size, using local SVG and canvas APIs. No profile data is uploaded. Browsers that cannot copy PNG images show a message directing you to Save PNG.
 
 ## Measure time and thrust
 

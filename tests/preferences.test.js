@@ -236,6 +236,19 @@ test('CSV mappings follow remembered names when columns are reordered', () => {
   assert.deepEqual(result, { timeColumn: 2, thrustColumn: 0, timeUnit: 'ms', thrustUnit: 'kgf', header: 'yes' });
 });
 
+test('chart grid choices retain canonical spacing and validated height while resetting independently', () => {
+  const storage = memoryStorage({ 'thrust-lab-project-v1': 'preserve recording' });
+  const preferences = createPreferences(storage);
+  assert.deepEqual(preferences.get().chartGrid, { mode: 'auto', stepSI: 25, height: null });
+  preferences.update({ chartGrid: { mode: 'custom', stepSI: 25 * 9.80665, height: 1000 } });
+  const restored = createPreferences(storage);
+  const expected = { mode: 'custom', stepSI: 25 * 9.80665, height: 1000 };
+  assert.deepEqual(restored.get().chartGrid, expected);
+  for (const patch of [{ mode: 'dense' }, { stepSI: 0 }, { stepSI: -1 }, { stepSI: Infinity }, { height: 800 }, { height: '760' }]) assert.deepEqual(restored.update({ chartGrid: patch }).chartGrid, expected);
+  assert.deepEqual(restored.reset().chartGrid, { mode: 'auto', stepSI: 25, height: null });
+  assert.equal(storage.getItem('thrust-lab-project-v1'), 'preserve recording');
+});
+
 test('duration matching remembers target modes without replaying absolute targets on another recording', () => {
   const storage = memoryStorage();
   const preferences = createPreferences(storage);
