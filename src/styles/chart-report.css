@@ -21,6 +21,7 @@
 .chart-report .metric { min-height: 104px; padding: 12px 11px; background: #f8fafc; border-color: #e4eaf0; }
 .chart-report .metric strong { font-size: clamp(20px, 1.6vw, 26px); }
 .chart-report .metric > div { flex-wrap: wrap; gap: 3px 5px; }
+.peak-metric-label::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border: 1px solid #fff; border-radius: 50%; background: #dc4444; vertical-align: 1px; }
 .chart-report .chart-legend { padding: 0 20px 7px; justify-content: flex-start; gap: 7px 16px; min-height: 20px; max-width: none; }
 .chart-report .chart-legend i.gray { border-color: #a7b0bc; }
 @media (max-width: 760px) {

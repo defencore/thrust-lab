@@ -84,8 +84,10 @@ export function buildChartImageSVG({ plot, width, height, title = '', metrics = 
     const inner = cardWidth - 24;
     const value = `${metric.value ?? ''}${metric.unit ? ` ${metric.unit}` : ''}`;
     const valueSize = Math.min(22, Math.max(12, inner / Math.max(1, value.length) / .57));
+    const labelOffset = metric.key === 'peak' ? 12 : 0;
     content += `<rect x="${x}" y="${y}" width="${cardWidth}" height="${cardHeight}" rx="6" fill="#f7f9fc" stroke="#dce5ed"/>`;
-    content += textLines(lines(metric.label, Math.max(10, Math.floor(inner / 6)), 2), x + 12, y + 20, { size: 10, height: 13, fill: '#657b91', weight: 600 });
+    if (metric.key === 'peak') content += `<circle class="peak-metric-marker" cx="${x + 15}" cy="${y + 16}" r="3" fill="#dc4444" stroke="#fff" stroke-width="1.25"/>`;
+    content += textLines(lines(metric.label, Math.max(10, Math.floor((inner - labelOffset) / 6)), 2), x + 12 + labelOffset, y + 20, { size: 10, height: 13, fill: '#657b91', weight: 600 });
     content += textLines([value], x + 12, y + 64, { size: valueSize, fill: '#29445f', weight: 550 });
     if (showDetails) content += textLines(lines(metric.detail, Math.max(10, Math.floor(inner / 5.7)), 2), x + 12, y + 86, { size: 10, height: 13, fill: '#75899e' });
   }

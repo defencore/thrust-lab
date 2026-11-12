@@ -20,7 +20,7 @@ export function renderChartReport() {
     </div>
     <div class="metrics-grid">
       <article class="metric"><span>TOTAL IMPULSE</span><div><strong id="metric-impulse">0</strong><small>N·s</small></div><p id="metric-class">Integrated thrust</p></article>
-      <article class="metric"><span>PEAK THRUST</span><div><strong id="metric-peak">0</strong><small>N</small></div><p id="metric-peak-time">Maximum measured force</p></article>
+      <article class="metric"><span class="peak-metric-label">PEAK THRUST</span><div><strong id="metric-peak">0</strong><small>N</small></div><p id="metric-peak-time">Maximum measured force</p></article>
       <article class="metric"><span>BURN DURATION</span><div><strong id="metric-burn">0</strong><small>s</small></div><p>5% peak threshold</p></article>
       <article class="metric"><span>MEAN BURN THRUST</span><div><strong id="metric-average">0</strong><small>N</small></div><p>Impulse / 5% burn duration</p></article>
     </div>

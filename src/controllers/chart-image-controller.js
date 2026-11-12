@@ -11,7 +11,7 @@ export function chartImageModel(ctx, { getStyle = globalThis.getComputedStyle } 
   const showDetails = settings.showDetails === true, showLegend = settings.showLegend === true;
   const metrics = ['impulse', 'peak', 'burn', 'average'].map(name => {
     const value = $(`#metric-${name}`), card = value.closest('.metric');
-    return { label: text(card.querySelector('span')), value: text(value), unit: text(value.nextElementSibling), detail: showDetails ? text(card.querySelector('p')) : '' };
+    return { key: name, label: text(card.querySelector('span')), value: text(value), unit: text(value.nextElementSibling), detail: showDetails ? text(card.querySelector('p')) : '' };
   });
   const profile = ctx.activeProfile(), container = $('#chart-report .chart-legend');
   const visible = node => {

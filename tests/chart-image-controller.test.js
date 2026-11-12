@@ -91,6 +91,7 @@ test('image model hides details and legend by default while retaining metric val
   assert.equal(model.showDetails, false); assert.equal(model.showLegend, false);
   assert.deepEqual(model.metrics.map(metric => metric.detail), ['', '', '', '']);
   assert.deepEqual(model.metrics.map(metric => metric.value), ['921.569', '455.200', '3.500', '263.305']);
+  assert.deepEqual(model.metrics.map(metric => metric.key), ['impulse', 'peak', 'burn', 'average']);
   assert.deepEqual(model.legend, []);
   assert.equal(model.footer, 'Time window: 1.000 — 4.500 s');
   const detailed = reportFixture({ showDetails: true, showLegend: true }), enabled = chartImageModel(detailed.ctx, detailed);

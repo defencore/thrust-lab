@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { captureChartSVG, buildChartImageSVG, renderChartPNG, downloadChartPNG } from '../src/chart-image.js';
 
 const summary = [
-  { label: 'TOTAL IMPULSE', value: '921.569', unit: 'N·s', detail: '352 measurement points' },
-  { label: 'PEAK THRUST', value: '455.200', unit: 'N', detail: 'at 2.500 s' },
-  { label: 'BURN DURATION', value: '3.500', unit: 's', detail: '5% peak threshold' },
-  { label: 'MEAN BURN THRUST', value: '263.305', unit: 'N', detail: 'Impulse / 5% burn duration' },
+  { key: 'impulse', label: 'TOTAL IMPULSE', value: '921.569', unit: 'N·s', detail: '352 measurement points' },
+  { key: 'peak', label: 'PEAK THRUST', value: '455.200', unit: 'N', detail: 'at 2.500 s' },
+  { key: 'burn', label: 'BURN DURATION', value: '3.500', unit: 's', detail: '5% peak threshold' },
+  { key: 'average', label: 'MEAN BURN THRUST', value: '263.305', unit: 'N', detail: 'Impulse / 5% burn duration' },
 ];
 const report = overrides => buildChartImageSVG({
   plot: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><path d="M0 400L400 0L800 400"/></svg>',
@@ -35,6 +35,20 @@ test('small plots keep their aspect ratio with two readable metric columns', () 
   assert.equal(new Set(cards.map(match => match[1])).size, 2);
   assert.equal(new Set(cards.map(match => match[2])).size, 2);
   assert.ok(built.height > 800);
+});
+
+test('only the peak metric receives the red marker beside its label in compact and detailed images', () => {
+  for (const width of [300, 800]) for (const showDetails of [false, true]) {
+    const built = report({ width, showDetails });
+    const markers = [...built.svg.matchAll(/<circle class="peak-metric-marker"[^>]+>/g)];
+    assert.equal(markers.length, 1);
+    assert.match(markers[0][0], /r="3" fill="#dc4444" stroke="#fff" stroke-width="1\.25"/);
+    const markerX = Number(markers[0][0].match(/cx="([\d.]+)"/)[1]);
+    const markerY = Number(markers[0][0].match(/cy="([\d.]+)"/)[1]);
+    assert.ok(built.svg.includes(`<text x="${markerX + 9}" y="${markerY + 4}" font-size="10" fill="#657b91" font-weight="600">PEAK THRUST</text>`));
+    assert.ok(built.svg.includes('455.200 N'));
+    assert.equal(built.svg.includes('at 2.500 s'), showDetails);
+  }
 });
 
 test('profile names, metadata and legend text cannot create SVG elements or attributes', () => {
