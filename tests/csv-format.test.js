@@ -232,3 +232,107 @@ test('stored layout must agree with mappings, headers and every original numeric
     assert.throws(() => parseProject(JSON.stringify({ version: 1, points: imported.points, csvFormat })), /CSV source format/);
   }
 });
+
+test('explicit custom units convert selected columns and retain the original layout and auxiliary values', () => {
+  const text = '\uFEFFtime_s;pressure;thrust_N\n 0.1000 ; 005.60 ; " 98.0665 " \r\n0.2000;006.70;49.03325';
+  const imported = parseCSV(text), before = structuredClone(imported);
+  const converted = withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 'ms', thrustUnit: 'kgf', precision: 2, delimiter: '\t' });
+  assert.equal(converted, '\uFEFFtime_ms;pressure;thrust_kgf\n 100 ; 005.60 ; " 10.00 " \r\n200;006.70;5.00');
+  const again = parseCSV(converted);
+  for (let index = 0; index < imported.points.length; index++) {
+    assert.equal(again.points[index].time, imported.points[index].time);
+    assert.ok(Math.abs(again.points[index].thrust - imported.points[index].thrust) < 1e-12);
+  }
+  assert.deepEqual(imported, before);
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { formatMode: 'source', timeUnit: 'ms', thrustUnit: 'kgf', precision: 2 }), text);
+});
+
+test('source clock conversion uses lexical decimal shifts without binary float artifacts', () => {
+  const imported = parseCSV('Time (ms),Thrust (N),notes\r\n4084,0,"a,b"\r\n4085,98.0665,"c"');
+  assert.equal(imported.points[0].time, 4.0840000000000005);
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 's', thrustUnit: 'kgf', precision: 1 }), 'Time (s),Thrust (kgf),notes\r\n4.084,0.0,"a,b"\r\n4.085,10.0,"c"');
+  const fine = parseCSV('time_s,thrust_N\n1.234567890123450,1\n1.234567890123451,2');
+  const converted = withoutMarker(fine.points, fine.csvFormat, { formatMode: 'custom', timeUnit: 'ms', precision: 0 });
+  assert.equal(converted, 'time_ms,thrust_N\n1234.56789012345,1\n1234.567890123451,2');
+  assert.ok(parseCSV(converted).points[0].time < parseCSV(converted).points[1].time);
+  const scientific = parseCSV('Time [ms],Force [N]\n1.2340E+003,4.4482216152605\n1.2350E+003,8.896443230521');
+  assert.equal(withoutMarker(scientific.points, scientific.csvFormat, { formatMode: 'custom', timeUnit: 's', thrustUnit: 'lbf', precision: 3 }), 'Time [s],Force [lbf]\n1.234,1.000\n1.235,2.000');
+});
+
+test('custom decimal-comma output quotes newly fractional cells without damaging other columns', () => {
+  const imported = parseCSV('Time (ms),Thrust (N),pressure\n0,0,1\n"100,0","98,0665",2\n200,49.03325,3');
+  const converted = withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 's', thrustUnit: 'kgf', precision: 2 });
+  assert.equal(converted, 'Time (s),Thrust (kgf),pressure\n0,"0,00",1\n"0,1","10,00",2\n"0,2","5,00",3');
+  const again = parseCSV(converted);
+  assert.deepEqual(again.points.map(point => point.time), [0, .1, .2]);
+  assert.ok(Math.abs(again.points[1].thrust - 98.0665) < 1e-12);
+});
+
+test('custom thrust formatting keeps unchanged-unit clock tokens exact and headerless files headerless', () => {
+  const text = '\uFEFF"0,0000"\t0,00\tfirst\n"0,0100"\t98,0665\tsecond';
+  const imported = parseCSV(text);
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 's', thrustUnit: 'kgf', precision: 1, includeHeader: true }), '\uFEFF"0,0000"\t0,0\tfirst\n"0,0100"\t10,0\tsecond');
+  const plain = parseCSV('time,thrust,pressure\n0,0,3\n.1,98.0665,4');
+  const converted = withoutMarker(plain.points, plain.csvFormat, { formatMode: 'custom', timeUnit: 'ms', thrustUnit: 'kgf', precision: 2 });
+  assert.equal(converted, 'time (ms),thrust (kgf),pressure\n0,0.00,3\n100,10.00,4');
+  assert.equal(parseCSV(converted).points[1].time, .1);
+});
+
+test('source and custom range exports keep only original rows without resampling or rebasing time', () => {
+  const text = 'time_ms,force_N,pressure\n0,00.0,P0\n1000,01.0,P1\n2000,02.0,P2\n3000,03.00,P3\n4000,04.0,P4';
+  const imported = parseCSV(text), before = structuredClone(imported);
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { range: [1.5, 3.5] }), 'time_ms,force_N,pressure\n2000,02.0,P2\n3000,03.00,P3\n');
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { range: [2, 3], includeHeader: false }), '2000,02.0,P2\n3000,03.00,P3\n');
+  assert.equal(withoutMarker(imported.points, imported.csvFormat, { range: [1.5, 3.5], formatMode: 'custom', timeUnit: 's', thrustUnit: 'kN', precision: 4 }), 'time_s,force_kN,pressure\n2,0.0020,P2\n3,0.0030,P3\n');
+  const marked = exportCSV(imported.points, { csvFormat: imported.csvFormat, range: [1.5, 3.5], includeHeader: false });
+  const parsed = parseCSV(marked, { hasHeader: false, timeUnit: 'ms' });
+  assert.equal(parsed.syntheticMarker.detected, true);
+  assert.deepEqual(parsed.points, imported.points.slice(2, 4));
+  assert.deepEqual(imported, before);
+});
+
+test('invalid conversion modes, crop ranges and stale metadata fail without modifying a profile', () => {
+  const imported = parseCSV('time_ms,thrust_N,pressure\n0,0,1\n1000,1,2\n2000,2,3\n3000,0,4');
+  const before = structuredClone(imported);
+  for (const range of [[0, 0], [-1, 1], [1, 4], [NaN, 1], ['0', 1], [.1, .2]]) assert.throws(() => withoutMarker(imported.points, imported.csvFormat, { range }), /CSV export/);
+  assert.throws(() => withoutMarker(imported.points, imported.csvFormat, { formatMode: 'other' }), /original or custom/);
+  assert.throws(() => exportCSV(imported.points, { formatMode: 'source' }), /unavailable/);
+  assert.throws(() => withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 'min' }), /Unsupported export unit/);
+  assert.throws(() => withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', precision: -1 }), /precision/);
+  const stale = structuredClone(imported.csvFormat); stale.rows[0][0] = '1';
+  assert.throws(() => withoutMarker(imported.points, stale, { range: [1, 3] }), /timestamp sequence/);
+  const corrupt = structuredClone(imported.csvFormat); corrupt.layout.thrustColumn = 2;
+  assert.throws(() => withoutMarker(imported.points, corrupt, { range: [1, 3], formatMode: 'custom' }), /source format/);
+  assert.deepEqual(imported, before);
+});
+
+test('custom headers state the chosen units even when original labels were overridden during import', () => {
+  const imported = parseCSV('Time [ms],Force (lbf),pressure\n0,0,3\n1,9.80665,4', { timeUnit: 's', thrustUnit: 'N' });
+  const converted = withoutMarker(imported.points, imported.csvFormat, { formatMode: 'custom', timeUnit: 's', thrustUnit: 'N', precision: 5 });
+  assert.equal(converted, 'Time [s],Force (N),pressure\n0,0.00000,3\n1,9.80665,4');
+  assert.deepEqual(parseCSV(converted).points, imported.points);
+});
+
+test('converted original clocks fail rather than collapsing distinct timestamps or emitting infinity', () => {
+  const dense = parseCSV('time_s,thrust_N\n1000000000000002.625,0\n1000000000000002.750,1');
+  assert.ok(dense.points[0].time < dense.points[1].time);
+  assert.throws(() => withoutMarker(dense.points, dense.csvFormat, { formatMode: 'custom', timeUnit: 'ms' }), /finite, strictly increasing/);
+  const huge = parseCSV('time_s,thrust_N\n1e308,0\n1.5e308,1');
+  assert.throws(() => withoutMarker(huge.points, huge.csvFormat, { formatMode: 'custom', timeUnit: 'us' }), /finite, strictly increasing/);
+});
+
+test('optional markers remain detectable after custom source conversions and cropping', () => {
+  const imported = parseCSV('pressure,time_ms,thrust_N\n5,1000,0\n6,1001,9.80665\n7,1002,19.6133\n8,1003,0');
+  const range = [imported.points[1].time, imported.points[2].time];
+  for (const timeUnit of ['s', 'ms', 'us']) for (const thrustUnit of ['N', 'kN', 'kgf', 'lbf']) {
+    const converted = exportCSV(imported.points, { csvFormat: imported.csvFormat, formatMode: 'custom', range, timeUnit, thrustUnit, precision: 6 });
+    const parsed = parseCSV(converted);
+    assert.equal(parsed.syntheticMarker.detected, true, `${timeUnit}/${thrustUnit}`);
+    assert.equal(parsed.points.length, 2);
+    for (let index = 0; index < 2; index++) assert.ok(Math.abs(parsed.points[index].time - imported.points[index + 1].time) < 1e-12);
+    const records = converted.split('\n');
+    const clocks = timeUnit === 's' ? ['1.001', '1.002'] : timeUnit === 'ms' ? ['1001', '1002'] : ['1001000', '1002000'];
+    assert.deepEqual(records.slice(-3, -1).map(record => record.split(',').slice(0, 2)), [['6', clocks[0]], ['7', clocks[1]]]);
+    assert.equal(records.at(-1), '');
+  }
+});

@@ -275,3 +275,20 @@ test('generated CSV exports can omit the header without dropping or shifting mea
   assert.deepEqual(parseCSV(csv, { timeUnit: 'ms', hasHeader: false }).points, [{ time: 0, thrust: 0 }, { time: .016, thrust: 1.2 }]);
   assert.throws(() => exportCSV(points, { includeHeader: 'yes' }), /header export must be true or false/);
 });
+
+test('generated custom range exports retain original absolute sample times in selected units', () => {
+  const points = [{ time: 10, thrust: 0 }, { time: 11, thrust: 9.80665 }, { time: 12, thrust: 19.6133 }, { time: 13, thrust: 0 }];
+  const before = structuredClone(points);
+  const csv = exportCSV(points, { formatMode: 'custom', range: [10.5, 12.5], timeUnit: 'ms', thrustUnit: 'kgf', delimiter: ';', precision: 2, syntheticMarker: false, includeHeader: false });
+  assert.equal(csv, '11000;1\r\n12000;2\r\n');
+  assert.deepEqual(parseCSV(csv, { timeUnit: 'ms', thrustUnit: 'kgf', hasHeader: false }).points, points.slice(1, 3));
+  assert.deepEqual(points, before);
+});
+
+test('custom export accepts only declared time and thrust units', () => {
+  const points = [{ time: 0, thrust: 1 }, { time: 1, thrust: 0 }];
+  for (const unit of ['__proto__', 'constructor', 'toString', 'invalid']) {
+    assert.throws(() => exportCSV(points, { timeUnit: unit }), /Unsupported export unit/);
+    assert.throws(() => exportCSV(points, { thrustUnit: unit }), /Unsupported export unit/);
+  }
+});

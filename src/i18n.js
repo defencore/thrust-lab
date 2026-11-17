@@ -1,5 +1,30 @@
 /** English is the canonical interface language; project data is never translated. */
 export const dictionary = {
+  'CSV format': 'Формат CSV',
+  'Custom units and precision': 'Власні одиниці й точність',
+  'Measurements': 'Вимірювання',
+  'All measurements': 'Усі вимірювання',
+  'Burn region only': 'Лише ділянка горіння',
+  'Original format preserves the imported CSV. Custom format uses the selected export units.': 'Оригінальний формат зберігає структуру імпортованого CSV. Власний формат використовує вибрані одиниці експорту.',
+  "Burn region follows Fit burn and keeps the recording's time origin.": 'Ділянка горіння відповідає команді «Показати ділянку горіння» та зберігає початок відліку часу запису.',
+  'Custom units convert exported time and thrust values. The editor data stays unchanged.': 'Власні одиниці перераховують значення часу й тяги для експорту. Дані редактора залишаються незмінними.',
+  'Converts time and thrust values while retaining the original CSV columns and layout.': 'Перераховує значення часу й тяги зі збереженням оригінальних стовпців і структури CSV.',
+  'Timestamps keep their recording origin.': 'Часові мітки зберігають початок відліку запису.',
+  'Choose an original or custom CSV format.': 'Виберіть оригінальний або власний формат CSV.',
+  'Original CSV format is unavailable for generated profiles.': 'Оригінальний формат CSV недоступний для згенерованих профілів.',
+  'Choose all measurements or the burn region.': 'Виберіть усі вимірювання або ділянку горіння.',
+  'No measurable burn region was found. Choose all measurements to export this profile.': 'Ділянку горіння неможливо визначити. Для експорту цього профілю виберіть усі вимірювання.',
+  'The burn region contains fewer than two measurements. Choose all measurements.': 'Ділянка горіння містить менш ніж два вимірювання. Виберіть усі вимірювання.',
+  'Choose units and precision for the exported CSV.': 'Виберіть одиниці й точність для експорту CSV.',
+  'Headerless files stay headerless.': 'Файли без заголовка залишаються без нього.',
+  'Unit labels in the exported headers follow the selected units.': 'Позначення одиниць у заголовках експорту відповідають вибраним одиницям.',
+  'CSV exported.': 'CSV експортовано.',
+  'Choose original or custom CSV formatting.': 'Виберіть оригінальне або власне форматування CSV.',
+  'Original CSV formatting is unavailable for this profile.': 'Оригінальне форматування CSV недоступне для цього профілю.',
+  'The CSV export range must stay within the original recording timeline.': 'Діапазон експорту CSV має бути в межах часової шкали оригінального запису.',
+  'CSV export needs at least two ordered original measurements.': 'Для експорту CSV потрібно щонайменше два впорядкованих оригінальних вимірювання.',
+  'Converted timestamps exceed the supported CSV number length.': 'Часові мітки після перерахунку перевищують підтримувану довжину числа CSV.',
+  'Export units cannot represent these thrust values as finite numbers.': 'Одиниці експорту не дозволяють подати значення тяги як скінченні числа.',
   'Generated CSV files are exported without column names.': 'Згенеровані CSV-файли експортуються без назв стовпців.',
   'CSV files must use UTF-8 text encoding.': 'CSV-файли мають бути збережені в кодуванні UTF-8.',
   'CSV source format contains an invalid source layout.': 'Збережена структура початкового CSV некоректна.',
@@ -953,6 +978,8 @@ function canonicalLabel(text) { return englishByTranslation.get(text) ?? english
 
 function translatedDynamic(text) {
   let match;
+  if ((match = /^(\d[\d,]*) measurements · (.+) — (.+) (s|ms|µs|μs|us|min)$/.exec(text))) return `${match[1]} вимірювань · ${match[2]} — ${match[3]} ${match[4]}`;
+  if ((match = /^Exports (\d[\d,]*) measurements inside the fitted burn region\.$/.exec(text))) return `Експортуються ${match[1]} вимірювань у межах підігнаної ділянки горіння.`;
   if ((match = /^Maximum burn duration on this timeline: (.+)\.$/.exec(text))) return `Максимальна тривалість горіння на цій часовій шкалі: ${match[1]}.`;
   if ((match = /^Curve point (\d+)$/.exec(text))) return `Точка кривої ${match[1]}`;
   if ((match = /^Selected control point (\d+) of (\d+)$/.exec(text))) return `Вибрана контрольна точка ${match[1]} із ${match[2]}`;

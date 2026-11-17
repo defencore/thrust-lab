@@ -115,74 +115,135 @@ function decimalFor(rows, column) {
   return '.';
 }
 
-function exportLayoutCSV(points, format, markerRows, includeHeader) {
+const TIME_POWERS = Object.freeze({ s: 0, ms: -3, us: -6 });
+
+/** Shift source decimal digits exactly instead of converting a binary seconds value back. */
+function convertedClock(raw, sourceUnit, targetUnit, decimal) {
+  if (sourceUnit === targetUnit) return raw;
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?(?:e([+-]?\d+))?$/i.exec(raw.replace(',', '.'));
+  const [, sign, integer, fraction = '', exponent = '0'] = match;
+  let digits = (integer + fraction).replace(/^0+/, '');
+  if (!digits) return sign + '0';
+  let power = BigInt(exponent) - BigInt(fraction.length) + BigInt(TIME_POWERS[sourceUnit] - TIME_POWERS[targetUnit]);
+  const trimmed = digits.replace(/0+$/, '');
+  power += BigInt(digits.length - trimmed.length); digits = trimmed;
+  const position = BigInt(digits.length) + power;
+  let output;
+  if (position <= 0n && BigInt(digits.length + 2) - position <= BigInt(MAX_TOKEN)) output = `0.${'0'.repeat(Number(-position))}${digits}`;
+  else if (position >= BigInt(digits.length) && position <= BigInt(MAX_TOKEN)) output = digits + '0'.repeat(Number(position) - digits.length);
+  else if (position > 0n && position < BigInt(digits.length)) output = `${digits.slice(0, Number(position))}.${digits.slice(Number(position))}`;
+  else output = digits[0] + (digits.length > 1 ? `.${digits.slice(1)}` : '') + `e${power + BigInt(digits.length - 1)}`;
+  if (output.length + sign.length > MAX_TOKEN) throw new Error('Converted timestamps exceed the supported CSV number length.');
+  return sign + output.replace('.', decimal);
+}
+
+function convertedThrust(value, unit, precision, decimal) {
+  return fixed(value / CSV_THRUST_FACTORS[unit], precision).replace('.', decimal);
+}
+
+function replacedCell(raw, value, delimiter) {
+  if (raw.trim().startsWith('"') || !(value.includes(delimiter) || /["\r\n]/.test(value))) return replaceCSVField(raw, value);
+  const leading = raw.length - raw.trimStart().length;
+  const trailing = Math.min(raw.length - leading, raw.length - raw.trimEnd().length);
+  return raw.slice(0, leading) + field(value, delimiter) + raw.slice(raw.length - trailing);
+}
+
+function unitHeader(header, dimension, unit) {
+  const recognized = dimension === 'time'
+    ? /^(?:s|ms|us|[µμ]s|seconds?|milliseconds?|microseconds?|ns|nanoseconds?|min|mins|minutes?|h|hr|hours?)$/i
+    : /^(?:N|kN|kgf|lbf|newtons?|kilonewtons?|kilogram[- ]?force|pound[- ]?force|mN|[µμ]N|MN|dyn|dynes?)$/i;
+  const bracket = /^(.*[([])\s*([^()[\]]+)([)\]])(\s*)$/.exec(header);
+  if (bracket && recognized.test(bracket[2].trim())) return `${bracket[1]}${unit}${bracket[3]}${bracket[4]}`;
+  const suffix = /^(.*[_/])([^_/]+)$/.exec(header);
+  if (suffix && recognized.test(suffix[2].trim())) return suffix[1] + unit;
+  const separated = /^(.*\s)(\S+)$/.exec(header);
+  if (separated && recognized.test(separated[2])) return separated[1] + unit;
+  return `${header} (${unit})`;
+}
+
+function exportLayoutCSV(format, rowIndices, outputRows, markerRows, includeHeader, headers) {
   const { text, timeColumn, thrustColumn } = format.layout;
   const records = sourceRecords(text, format.delimiter).slice();
   const header = format.hasHeader ? records.shift() : null;
   const replacements = [];
   if (header && !includeHeader) replacements.push({ start: header.start, end: header.end + header.ending.length, text: '' });
-  for (let index = 0; index < points.length; index++) {
-    const sourceThrust = format.rows[index][1], value = points[index].thrust;
-    if (value === csvNumber(sourceThrust) * CSV_THRUST_FACTORS[format.thrustUnit]) continue;
-    const selected = records[index].fields[thrustColumn];
-    const number = formatCSVNumber(value / CSV_THRUST_FACTORS[format.thrustUnit], sourceThrust);
-    replacements.push({ start: selected.start, end: selected.end, text: replaceCSVField(text.slice(selected.start, selected.end), number) });
+  else if (header) for (const [column, value] of [[timeColumn, headers[0]], [thrustColumn, headers[1]]]) {
+    const selected = header.fields[column];
+    if (value !== selected.value) replacements.push({ start: selected.start, end: selected.end, text: replacedCell(text.slice(selected.start, selected.end), value, format.delimiter) });
+  }
+  const selectedRows = new Set(rowIndices);
+  for (let index = 0; index < records.length; index++) if (!selectedRows.has(index)) {
+    const record = records[index];
+    replacements.push({ start: record.start, end: record.end + record.ending.length, text: '' });
+  }
+  for (let position = 0; position < rowIndices.length; position++) {
+    const index = rowIndices[position];
+    for (const [column, value] of [[timeColumn, outputRows[position][0]], [thrustColumn, outputRows[position][1]]]) {
+      const selected = records[index].fields[column];
+      if (value === selected.value) continue;
+      replacements.push({ start: selected.start, end: selected.end, text: replacedCell(text.slice(selected.start, selected.end), value, format.delimiter) });
+    }
   }
   if (markerRows.length) {
-    const template = records[0];
+    const template = records[rowIndices[0]];
     const width = Math.max(template.fields.length, header?.fields.length ?? 0);
     const ending = template.ending || records.find(record => record.ending)?.ending || '\r\n';
     const prefix = markerRows.map(([time, thrust]) => Array.from({ length: width }, (_, index) => {
       const value = index === timeColumn ? time : index === thrustColumn ? thrust : '';
       const source = template.fields[index];
-      return source ? replaceCSVField(text.slice(source.start, source.end), value) : value;
+      return source ? replacedCell(text.slice(source.start, source.end), value, format.delimiter) : field(value, format.delimiter);
     }).join(format.delimiter) + ending).join('');
     replacements.push({ start: template.start, end: template.start, text: prefix });
   }
   return replaceCSVSpans(text, replacements);
 }
 
-/** Source records retain their exact layout; marker precision is never rounded away. */
-export function exportSourceCSV(points, source, markerPoints = [], { includeHeader = true } = {}) {
+/** Export selected original records, preserving source layout unless explicit conversion is requested. */
+export function exportSourceCSV(points, source, markerPoints = [], options = {}) {
+  const { includeHeader = true, formatMode = 'source', precision = 6 } = options;
   if (typeof includeHeader !== 'boolean') throw new Error('CSV header export must be true or false.');
+  if (!['source', 'custom'].includes(formatMode)) throw new Error('Choose original or custom CSV formatting.');
   const format = normalizeCSVFormat(source, points);
-  const { delimiter, timeUnit, thrustUnit, rows } = format;
+  const rowIndices = options.rowIndices ?? points.map((_, index) => index);
+  if (!Array.isArray(rowIndices) || rowIndices.length < 2 || rowIndices.some((index, position) => !Number.isInteger(index) || index < 0 || index >= points.length || position && index <= rowIndices[position - 1])) throw new Error('CSV export needs at least two ordered original measurements.');
+  const timeUnit = formatMode === 'custom' ? options.timeUnit ?? 's' : format.timeUnit;
+  const thrustUnit = formatMode === 'custom' ? options.thrustUnit ?? 'N' : format.thrustUnit;
+  if (!Object.hasOwn(CSV_TIME_FACTORS, timeUnit) || !Object.hasOwn(CSV_THRUST_FACTORS, thrustUnit)) throw new Error('Unsupported export unit.');
+  if (formatMode === 'custom' && (!Number.isInteger(precision) || precision < 0 || precision > 15)) throw new Error('Export precision must be an integer from 0 to 15.');
+  const { delimiter, rows } = format;
   const timeDecimal = decimalFor(rows, 0), thrustDecimal = decimalFor(rows, 1);
   const precise = (value, decimal) => String(value).replace('.', decimal);
-  // Use the source clock style only when it can represent every service timestamp distinctly.
-  const preferredMarkerTimes = markerPoints.map(point => formatCSVNumber(point.time / CSV_TIME_FACTORS[timeUnit], rows[0][0]));
+  const first = rowIndices[0];
+  const outputRows = rowIndices.map(index => {
+    const point = points[index], [time, sourceThrust] = rows[index];
+    if (formatMode === 'custom') return [convertedClock(time, format.timeUnit, timeUnit, timeDecimal), convertedThrust(point.thrust, thrustUnit, precision, thrustDecimal)];
+    const thrust = point.thrust === csvNumber(sourceThrust) * CSV_THRUST_FACTORS[thrustUnit] ? sourceThrust : formatCSVNumber(point.thrust / CSV_THRUST_FACTORS[thrustUnit], sourceThrust);
+    return [time, thrust];
+  });
+  // Service precision stays independent of user rounding. Only unchanged source clocks reuse its style.
+  const preferredMarkerTimes = markerPoints.map(point => formatCSVNumber(point.time / CSV_TIME_FACTORS[timeUnit], rows[first][0]));
   let previousPreferred = -Infinity, previousPreferredSI = -Infinity;
-  const preferredTimesFit = preferredMarkerTimes.every(token => {
+  const preferredTimesFit = formatMode === 'source' || timeUnit === format.timeUnit;
+  const usePreferredTimes = preferredTimesFit && preferredMarkerTimes.every(token => {
     const time = csvNumber(token), timeSI = time * CSV_TIME_FACTORS[timeUnit];
-    const valid = Number.isFinite(time) && Number.isFinite(timeSI) && time > previousPreferred && timeSI > previousPreferredSI && time < csvNumber(rows[0][0]) && timeSI < points[0].time;
+    const valid = Number.isFinite(time) && Number.isFinite(timeSI) && time > previousPreferred && timeSI > previousPreferredSI && time < csvNumber(outputRows[0][0]) && timeSI < points[first].time;
     previousPreferred = time; previousPreferredSI = timeSI;
     return valid;
   });
-  const output = [];
-  if (format.hasHeader && includeHeader && !format.layout) output.push([format.timeHeader, format.thrustHeader]);
-  const markerRows = [];
+  const markerRows = markerPoints.map((point, index) => [usePreferredTimes ? preferredMarkerTimes[index] : precise(point.time / CSV_TIME_FACTORS[timeUnit], timeDecimal), precise(point.thrust / CSV_THRUST_FACTORS[thrustUnit], thrustDecimal)]);
   let previous = -Infinity;
-  for (let index = 0; index < markerPoints.length; index++) {
-    const point = markerPoints[index];
-    const time = point.time / CSV_TIME_FACTORS[timeUnit];
-    const token = preferredTimesFit ? preferredMarkerTimes[index] : precise(time, timeDecimal);
-    const emittedTime = csvNumber(token);
-    if (!Number.isFinite(emittedTime) || emittedTime <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
-    const row = [token, precise(point.thrust / CSV_THRUST_FACTORS[thrustUnit], thrustDecimal)];
-    output.push(row); markerRows.push(row);
-    previous = emittedTime;
+  for (const [time, thrust] of [...markerRows, ...outputRows]) {
+    const value = csvNumber(time);
+    if (!Number.isFinite(value) || value <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
+    if (!Number.isFinite(csvNumber(thrust))) throw new Error('Export units cannot represent these thrust values as finite numbers.');
+    previous = value;
   }
-  if (format.layout) {
-    if (csvNumber(rows[0][0]) <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
-    return exportLayoutCSV(points, format, markerRows, includeHeader);
+  const headers = [format.timeHeader, format.thrustHeader];
+  if (formatMode === 'custom') {
+    headers[0] = unitHeader(headers[0], 'time', timeUnit);
+    headers[1] = unitHeader(headers[1], 'thrust', thrustUnit);
   }
-  for (let index = 0; index < points.length; index++) {
-    const point = points[index], [time, sourceThrust] = rows[index];
-    const originalTime = csvNumber(time);
-    if (originalTime <= previous) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
-    previous = originalTime;
-    const thrust = point.thrust === csvNumber(sourceThrust) * CSV_THRUST_FACTORS[thrustUnit] ? sourceThrust : formatCSVNumber(point.thrust / CSV_THRUST_FACTORS[thrustUnit], sourceThrust);
-    output.push([time, thrust]);
-  }
-  return output.map(row => row.map(token => field(token, delimiter)).join(delimiter)).join('\r\n') + '\r\n';
+  if (format.layout) return exportLayoutCSV(format, rowIndices, outputRows, markerRows, includeHeader, headers);
+  const header = format.hasHeader && includeHeader ? [headers] : [];
+  return [...header, ...markerRows, ...outputRows].map(row => row.map(token => field(token, delimiter)).join(delimiter)).join('\r\n') + '\r\n';
 }

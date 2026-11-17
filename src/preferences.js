@@ -29,6 +29,7 @@ export const PREFERENCE_DEFAULTS = freeze({
   chartGrid: { mode: 'auto', stepSI: 25, height: null },
   timeGrid: { visible: true, mode: 'auto', stepSI: .5 },
   chartImage: { showDetails: false, showLegend: false },
+  csvExport: { formatMode: 'source', scope: 'all' },
   inspectorTab: 'transform',
   editorTab: 'samples',
   focus: false,
@@ -142,6 +143,12 @@ function normalize(patch, previous = PREFERENCE_DEFAULTS) {
   }
   if (plain(patch.chartImage)) {
     for (const name of ['showDetails', 'showLegend']) if (typeof patch.chartImage[name] === 'boolean') result.chartImage[name] = patch.chartImage[name];
+  }
+  if (plain(patch.csvExport)) {
+    result.csvExport = {
+      formatMode: choice(patch.csvExport.formatMode, ['source', 'custom'], previous.csvExport.formatMode),
+      scope: choice(patch.csvExport.scope, ['all', 'burn'], previous.csvExport.scope),
+    };
   }
   if (plain(patch.timeGrid)) {
     result.timeGrid = {

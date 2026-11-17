@@ -4,6 +4,7 @@ import { ProfileChart } from '../src/chart.js';
 import { createProjectStore } from '../src/project-store.js';
 import { metrics } from '../src/profile.js';
 import { parseCSV, exportCSV } from '../src/csv.js';
+import { burnRegionView } from '../src/burn-region.js';
 
 class Element {
   constructor(width = 800, height = 400) {
@@ -176,6 +177,7 @@ test('fitting the burn region excludes long idle recordings and fits both view a
   const h = harness({ points, view: [0, 1000], thrustView: [100, 200] }), original = h.store.get();
   assert.equal(h.chart.canFitBurnRegion(), true);
   assert.equal(h.chart.fitBurnRegion(), true);
+  assert.deepEqual(h.chart.state.view, burnRegionView(points));
   const padding = measured.burnDuration * .04;
   close(h.chart.state.view[0], measured.burnStart - padding);
   close(h.chart.state.view[1], measured.burnEnd + padding);
@@ -187,6 +189,22 @@ test('fitting the burn region excludes long idle recordings and fits both view a
   assert.ok(h.chart.state.view[1] - h.chart.state.view[0] < 3);
   assert.deepEqual(points, before);
   assert.equal(h.store.get(), original);
+  assert.equal(h.store.status().undoCount, 0);
+  h.store.destroy();
+});
+
+test('burn bounds are cached across viewport renders and refreshed when sample data changes', () => {
+  const h = harness();
+  const bounds = h.chart.burnRegion();
+  assert.deepEqual(bounds, burnRegionView(h.chart.state.points));
+  h.update({ timeOriginSI: 1, units: { time: 'ms', thrust: 'kN', impulse: 'N·s' } });
+  assert.equal(h.chart.burnRegion(), bounds);
+  const points = [{ time: 0, thrust: 0 }, { time: 2, thrust: 100 }, { time: 4, thrust: 0 }];
+  h.update({ points });
+  assert.notEqual(h.chart.burnRegion(), bounds);
+  assert.deepEqual(h.chart.burnRegion(), burnRegionView(points));
+  h.chart.fitBurnRegion();
+  assert.deepEqual(h.chart.state.view, burnRegionView(points));
   assert.equal(h.store.status().undoCount, 0);
   h.store.destroy();
 });

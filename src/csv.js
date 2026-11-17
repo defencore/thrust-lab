@@ -135,25 +135,31 @@ export function parseCSV(text, options = {}) {
   return { points: profile, headers, timeColumn: time.index, thrustColumn: thrust.index, warnings, syntheticMarker, csvFormat };
 }
 
-export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true, csvFormat = null, includeHeader = true } = {}) {
+export function exportCSV(points, { timeUnit = 's', thrustUnit = 'N', delimiter = ',', precision = 6, syntheticMarker = true, csvFormat = null, includeHeader = true, formatMode = csvFormat ? 'source' : 'custom', range = null } = {}) {
   const validated = validatePoints(points);
   if (typeof syntheticMarker !== 'boolean') throw new Error('Synthetic marker export must be true or false.');
   if (typeof includeHeader !== 'boolean') throw new Error('CSV header export must be true or false.');
-  if (csvFormat != null) return exportSourceCSV(validated, csvFormat, syntheticMarker ? createSyntheticMarker(validated) : [], { includeHeader });
-  if (!(timeUnit in TIME_FACTORS) || !(thrustUnit in THRUST_FACTORS)) throw new Error('Unsupported export unit.');
+  if (!['source', 'custom'].includes(formatMode)) throw new Error('Choose original or custom CSV formatting.');
+  if (formatMode === 'source' && csvFormat == null) throw new Error('Original CSV formatting is unavailable for this profile.');
+  if (range != null && (!Array.isArray(range) || range.length !== 2 || !range.every(Number.isFinite) || !(range[1] > range[0]) || range[0] < validated[0].time || range[1] > validated.at(-1).time)) throw new Error('The CSV export range must stay within the original recording timeline.');
+  const rowIndices = validated.map((_, index) => index).filter(index => !range || validated[index].time >= range[0] && validated[index].time <= range[1]);
+  if (rowIndices.length < 2) throw new Error('CSV export needs at least two ordered original measurements.');
+  const selected = rowIndices.map(index => validated[index]);
+  if (csvFormat != null) return exportSourceCSV(validated, csvFormat, syntheticMarker ? createSyntheticMarker(selected) : [], { includeHeader, formatMode, timeUnit, thrustUnit, precision, rowIndices });
+  if (!Object.hasOwn(TIME_FACTORS, timeUnit) || !Object.hasOwn(THRUST_FACTORS, thrustUnit)) throw new Error('Unsupported export unit.');
   if (![',', ';', '\t'].includes(delimiter)) throw new Error('Unsupported export delimiter.');
   if (!Number.isInteger(precision) || precision < 0 || precision > 15) throw new Error('Export precision must be an integer from 0 to 15.');
   // Marker precision is independent of the selected rounding for actual thrust values.
-  const markerPoints = syntheticMarker ? createSyntheticMarker(validated) : [];
+  const markerPoints = syntheticMarker ? createSyntheticMarker(selected) : [];
   let previousTime = -Infinity;
-  for (const point of [...markerPoints, ...validated]) {
+  for (const point of [...markerPoints, ...selected]) {
     const time = point.time / TIME_FACTORS[timeUnit];
     if (!Number.isFinite(time) || time <= previousTime) throw new Error('Export units cannot represent these timestamps as finite, strictly increasing values.');
     previousTime = time;
   }
   const prefix = markerPoints.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${point.thrust / THRUST_FACTORS[thrustUnit]}`);
   // Preserve timestamp precision so export never merges distinct measurements.
-  const rows = validated.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${Number((point.thrust / THRUST_FACTORS[thrustUnit]).toFixed(precision))}`);
+  const rows = selected.map(point => `${point.time / TIME_FACTORS[timeUnit]}${delimiter}${Number((point.thrust / THRUST_FACTORS[thrustUnit]).toFixed(precision))}`);
   const header = includeHeader ? [`Time (${timeUnit})${delimiter}Thrust (${thrustUnit})`] : [];
   return [...header, ...prefix, ...rows].join('\r\n') + '\r\n';
 }

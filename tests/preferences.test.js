@@ -31,6 +31,23 @@ test('preferences persist separate import settings and deeply merge selected con
   assert.equal(saved.inspectorTab, 'signal');
 });
 
+test('CSV export format and scope choices persist independently and reject unsupported modes', () => {
+  const storage = memoryStorage();
+  const preferences = createPreferences(storage);
+  assert.deepEqual(preferences.get().csvExport, { formatMode: 'source', scope: 'all' });
+  preferences.update({ csvExport: { formatMode: 'custom' } });
+  preferences.update({ csvExport: { scope: 'burn' } });
+  const restored = createPreferences(storage);
+  assert.deepEqual(restored.get().csvExport, { formatMode: 'custom', scope: 'burn' });
+  for (const value of [null, '', 'selection', true, {}, []]) {
+    assert.deepEqual(restored.update({ csvExport: { formatMode: value, scope: value } }).csvExport, { formatMode: 'custom', scope: 'burn' });
+  }
+  restored.update({ csvExport: { formatMode: 'source', scope: 'all' } });
+  assert.deepEqual(createPreferences(storage).get().csvExport, { formatMode: 'source', scope: 'all' });
+  restored.update({ csvExport: { formatMode: 'custom', scope: 'burn' } });
+  assert.deepEqual(restored.reset().csvExport, { formatMode: 'source', scope: 'all' });
+});
+
 test('settings reset removes only the preferences key and preserves project and language', () => {
   const storage = memoryStorage({ 'thrust-lab-project-v1': '{"name":"Keep my measured profile"}', 'thrust-lab-language': 'uk', unrelated: 'retained' });
   const preferences = createPreferences(storage);

@@ -1,4 +1,9 @@
 /* Imported numeric formatting belongs to the profile, independently of custom export settings. */
+.export-modal { padding: 0; overflow: hidden; }
+.export-modal > form { display: flex; flex-direction: column; max-height: calc(100dvh - 42px); }
+.export-modal .modal-heading { flex: 0 0 auto; margin: 0; padding: 20px 24px 16px; border-bottom: 1px solid var(--line); }
+.export-modal-body { flex: 1 1 auto; min-height: 0; padding: 18px 24px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable; }
+.export-modal .modal-actions { flex: 0 0 auto; margin: 0; padding: 14px 24px; background: #f9fbfc; }
 .export-read-source { margin-top: 16px; }
 .export-read-source .modal-note { margin-top: 8px; }
 .export-source-format { margin-top: 20px; padding: 16px; border: 1px solid #d8e5e7; border-radius: 6px; background: #f3f8f8; }
@@ -12,3 +17,15 @@
 .export-modal .export-marker-option > input { flex: 0 0 16px; width: 16px; height: 16px !important; min-height: 16px; margin: 0; }
 .export-modal .export-marker-option:has(input:checked) { border-color: #bfd5e8; background: #edf5fc; color: #356c9e; }
 .export-modal .export-marker-note { margin-top: 7px; }
+.export-options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.export-options-grid > label { min-width: 0; gap: 7px; }
+.export-options-grid select { width: 100%; min-width: 0; }
+.export-modal .export-conversion-note { grid-column: 1 / -1; margin-top: 0; }
+.export-scope-status { margin-top: 12px; padding: 10px 12px; border: 1px solid #dce7ef; border-radius: 5px; background: #f4f8fc; color: #58738e; font-size: 12px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.export-scope-status:empty { display: none; }
+@media (max-width: 480px) {
+  .export-options-grid { grid-template-columns: minmax(0, 1fr); }
+  .export-modal .modal-heading { padding: 16px 18px 14px; }
+  .export-modal-body { padding: 16px 18px; }
+  .export-modal .modal-actions { padding: 12px 18px; }
+}

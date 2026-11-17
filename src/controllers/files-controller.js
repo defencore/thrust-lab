@@ -1,11 +1,13 @@
-import { inspectCSV, parseCSV, exportCSV, downloadFile, serializeProject, parseProject } from '../csv.js';
+import { inspectCSV, parseCSV, downloadFile, serializeProject, parseProject } from '../csv.js';
 import { resolveImportPreferences } from '../preferences.js';
 import { applyDraftToEditor, combineProfileTimings } from '../workspace.js';
 import { escape } from '../ui/dom.js';
 import { decodeCSVText } from '../csv-records.js';
+import { createCSVExportController } from './csv-export-controller.js';
 
 export function createFilesController(ctx) {
   const { $, preferences, store, ui } = ctx;
+  const { openExport } = createCSVExportController(ctx);
   let target = 'working';
   let imported = null;
   const settingsKey = kind => kind === 'theory' ? 'theory' : 'working';
@@ -86,40 +88,6 @@ export function createFilesController(ctx) {
       $('#import-dialog').close();
       if (result.warnings.length) ctx.notify(result.warnings.join(' '));
     } catch (error) { $('#import-error').textContent = error.message; $('#import-error').hidden = false; }
-  };
-  function openExport() {
-    if (ui.screen === 'analyzer') return;
-    const profile = ctx.activeProfile();
-    const source = profile.csvFormat;
-    $('#export-synthetic-marker').checked = !source;
-    $('#export-read-source-section').hidden = ui.mode !== 'edit';
-    $('#export-source-format').hidden = !source;
-    $('#export-custom-format').hidden = !!source;
-    if (source) {
-      $('#export-source-time-example').textContent = source.rows[0][0];
-      $('#export-source-thrust-example').textContent = source.rows[0][1];
-    }
-    $('#export-source-layout-note').hidden = !source || !!source.layout;
-    $('#export-header-note').textContent = source ? 'Original column names are retained. Headerless files stay headerless.' : 'Generated CSV files are exported without column names.';
-    $('#export-source-description').textContent = source?.layout
-      ? 'All original columns, timestamps, headers and number formatting are retained.'
-      : 'Time values are copied exactly from the imported file. Thrust keeps the original decimal format.';
-    $('#export-read-source').lastChild.textContent = source && !source.layout ? 'Restore original CSV layout' : 'Use timings from another CSV';
-    $('#export-dialog .modal-heading h2').textContent = ui.mode === 'create' ? 'Export preview' : 'Export profile';
-    $('#export-name').value = profile.name.replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-|-$/g, '').toLowerCase() || 'thrust-profile';
-    $('#export-summary').textContent = `Exports all ${profile.points.length.toLocaleString('en-US')} measurements. Your entire timestamp sequence is retained.`;
-    $('#export-error').hidden = true;
-    $('#export-dialog').showModal();
-  }
-  $('#export').onclick = openExport;
-  $('#export-form').onsubmit = event => {
-    event.preventDefault();
-    try {
-      const profile = ctx.activeProfile();
-      const content = exportCSV(profile.points, { csvFormat: profile.csvFormat, includeHeader: !!profile.csvFormat, syntheticMarker: $('#export-synthetic-marker').checked, timeUnit: $('#export-time').value, thrustUnit: $('#export-thrust').value, delimiter: $('#export-delimiter').value === 'tab' ? '\t' : $('#export-delimiter').value, precision: Number($('#export-precision').value) });
-      downloadFile(`${$('#export-name').value.replace(/\.csv$/i, '')}.csv`, content, 'text/csv;charset=utf-8');
-      $('#export-dialog').close(); ctx.notify('CSV exported with all measurement timestamps.');
-    } catch (error) { $('#export-error').textContent = error.message; $('#export-error').hidden = false; }
   };
   $('#save-project').onclick = () => {
     try {

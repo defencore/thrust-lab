@@ -24,6 +24,7 @@ export function createSettingsController(ctx) {
   }
   restore();
   for (const id of Object.keys(PREFERENCE_DEFAULTS.controls)) {
+    if (id.startsWith('export-')) continue;
     const control = $(`#${id}`); if (!control) continue;
     for (const event of ['input', 'change']) control.addEventListener(event, () => {
       const value = INPUT_DIMENSIONS[id] ? units.read(id) : control.value;

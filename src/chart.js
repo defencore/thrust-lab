@@ -1,9 +1,10 @@
-import { interpolate, metrics } from './profile.js';
+import { interpolate } from './profile.js';
 import { visibleEnvelope } from './chart-data.js';
 import { toDisplay, unitSymbol, displayNumber, formatTime } from './units.js';
 import { renderMeasurements } from './chart-measurements.js';
 import { defaultThrustView, axisTicks, zoomVerticalView, panVerticalView } from './vertical-view.js';
 import { relativeTime, timeTicks } from './time-axis.js';
+import { burnRegionView } from './burn-region.js';
 
 const svgNS = 'http://www.w3.org/2000/svg';
 const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
@@ -91,9 +92,9 @@ export class ProfileChart {
     const points = this.state?.points;
     if (!points) return null;
     if (points !== this.burnSource) {
+      const view = burnRegionView(points);
       this.burnSource = points;
-      const measured = metrics(points);
-      this.burnBounds = measured.peak > 0 && Number.isFinite(measured.burnDuration) && measured.burnDuration > 0 ? measured : null;
+      this.burnBounds = view;
     }
     return this.burnBounds;
   }
@@ -103,10 +104,8 @@ export class ProfileChart {
   /** Frame the measured burn while keeping quiet prelude and tail outside the view. */
   fitBurnRegion() {
     this.cancelDrag();
-    const burn = this.burnRegion();
-    if (!burn) return false;
-    const padding = burn.burnDuration * .04;
-    const view = [Math.max(burn.start, burn.burnStart - padding), Math.min(burn.end, burn.burnEnd + padding)];
+    const view = this.burnRegion();
+    if (!view) return false;
     this.callbacks.onTimeOrigin(view[0]);
     this.setView(view);
     this.setThrustView(null);
